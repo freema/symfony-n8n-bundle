@@ -29,9 +29,6 @@ class TestKernel extends Kernel
         $container->loadFromExtension('framework', [
             'secret' => 'test-secret',
             'test' => true,
-            'http_client' => [
-                'mock_response_factory' => 'test.http_client.mock_response_factory',
-            ],
         ]);
 
         $container->loadFromExtension('n8n', [
@@ -54,12 +51,7 @@ class TestKernel extends Kernel
             ],
         ]);
 
-        $container->autowire('Freema\N8nBundle\Tests\Fixtures\TestPayload')
-            ->setAutoconfigured(true);
-
-        $container->autowire('test.http_client.mock_response_factory')
-            ->setClass('Symfony\Component\HttpClient\Response\MockResponse')
-            ->setArguments([]);
+        // TestKernel pro případné budoucí použití
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void

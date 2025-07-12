@@ -47,7 +47,7 @@ final class CircuitBreaker
         ++$this->failureCount;
         $this->lastFailureTime = time();
 
-        if ($this->failureCount >= $this->threshold) {
+        if ($this->threshold > 0 && $this->failureCount >= $this->threshold) {
             $this->isOpen = true;
         }
     }
@@ -60,6 +60,11 @@ final class CircuitBreaker
     public function getFailureCount(): int
     {
         return $this->failureCount;
+    }
+
+    public function getLastFailureTime(): ?int
+    {
+        return $this->lastFailureTime;
     }
 
     public function checkAndThrow(): void

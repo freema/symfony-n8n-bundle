@@ -71,3 +71,8 @@ dev/.env
 
 # IDE
 .idea/
+
+# Test results
+/var/coverage/
+coverage.xml
+.phpunit.cache/

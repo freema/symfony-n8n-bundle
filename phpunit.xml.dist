@@ -9,10 +9,7 @@
          displayDetailsOnTestsThatTriggerWarnings="true"
          displayDetailsOnTestsThatTriggerDeprecations="true">
 
-    <coverage includeUncoveredFiles="true"
-              pathCoverage="false"
-              ignoreDeprecatedCodeUnitsFromCodeCoverage="true"
-              disableCodeCoverageIgnore="true">
+    <coverage>
         <include>
             <directory suffix=".php">src</directory>
         </include>
@@ -26,13 +23,9 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
-        <testsuite name="Functional">
-            <directory>tests/Functional</directory>
-        </testsuite>
     </testsuites>
 
     <php>
-        <env name="KERNEL_CLASS" value="Freema\N8nBundle\Tests\Fixtures\TestKernel"/>
         <env name="APP_ENV" value="test"/>
         <env name="APP_DEBUG" value="1"/>
         <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak"/>

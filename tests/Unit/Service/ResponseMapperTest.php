@@ -51,7 +51,7 @@ class ResponseMapperTest extends TestCase
 
     public function testMapToClassWithOptionalParameters(): void
     {
-        $testClass = new class {
+        $testClass = new class('test') {
             public function __construct(
                 public readonly string $required,
                 public readonly ?string $optional = null,

@@ -15,9 +15,11 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          tools: php-cs-fixer:3.14
+          tools: php-cs-fixer:3.64
 
       - name: Check code style
+        env:
+          PHP_CS_FIXER_IGNORE_ENV: 1
         run: php-cs-fixer fix --dry-run --diff
 
   phpstan:

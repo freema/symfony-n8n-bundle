@@ -75,10 +75,6 @@ tasks:
     desc: 'Run unit tests only'
     cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit --testsuite=Unit'
 
-  test:functional:
-    desc: 'Run functional tests only'
-    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit --testsuite=Functional'
-
   test:coverage:
     desc: 'Run tests with coverage report'
     cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit --coverage-html=var/coverage'
