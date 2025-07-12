@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  php-cs-fixer:
+    name: PHP-CS-Fixer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: php-cs-fixer:3.14
+
+      - name: Check code style
+        run: php-cs-fixer fix --dry-run --diff
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install composer dependencies
+        run: |
+          composer config --no-plugins allow-plugins.php-http/discovery true
+          composer install --no-interaction --no-progress
+
+      - name: Verify phpstan.neon exists
+        run: |
+          if [ ! -f phpstan.neon ]; then
+            echo "phpstan.neon does not exist!"
+            exit 1
+          fi
+          cat phpstan.neon
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: pcov
+          extensions: json, mbstring
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install composer dependencies
+        run: |
+          composer config --no-plugins allow-plugins.php-http/discovery true
+          composer install --no-interaction --no-progress
+
+      - name: Create test directories
+        run: |
+          mkdir -p tests/Unit tests/Functional
+          mkdir -p var/cache var/log
+
+      - name: Run unit tests
+        run: vendor/bin/phpunit --testsuite=Unit
+
+      - name: Run functional tests
+        run: vendor/bin/phpunit --testsuite=Functional
+
+      - name: Run all tests with coverage
+        run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: true
