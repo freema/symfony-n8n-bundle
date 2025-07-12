@@ -9,8 +9,9 @@ final readonly class ModerationResponse
     public function __construct(
         public bool $allowed,
         public ?string $reason = null,
-        public ?string $confidence = null
-    ) {}
+        public ?string $confidence = null,
+    ) {
+    }
 
     public function isAllowed(): bool
     {
@@ -31,6 +32,7 @@ final readonly class ModerationResponse
     {
         $status = $this->allowed ? 'ALLOWED' : 'REJECTED';
         $reason = $this->reason ? " ({$this->reason})" : '';
-        return $status . $reason;
+
+        return $status.$reason;
     }
 }

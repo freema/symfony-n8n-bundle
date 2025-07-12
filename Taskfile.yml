@@ -68,8 +68,24 @@ tasks:
     cmd: 'curl -X GET http://localhost:8080/demo/health'
 
   test:
-    desc: 'Run PHPUnit tests'
+    desc: 'Run all PHPUnit tests'
     cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit'
+
+  test:unit:
+    desc: 'Run unit tests only'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit --testsuite=Unit'
+
+  test:functional:
+    desc: 'Run functional tests only'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit --testsuite=Functional'
+
+  test:coverage:
+    desc: 'Run tests with coverage report'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit --coverage-html=var/coverage'
+
+  test:watch:
+    desc: 'Watch files and run tests automatically'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit-watcher watch'
 
   # Code Quality
   stan:

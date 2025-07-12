@@ -33,7 +33,7 @@ final class N8nExtension extends Extension
     private function registerClients(array $clients, ContainerBuilder $container): void
     {
         foreach ($clients as $name => $clientConfig) {
-            $configId = sprintf('n8n.config.%s', $name);
+            $configId = \sprintf('n8n.config.%s', $name);
             $configDefinition = new Definition(N8nConfig::class, [
                 $clientConfig['base_url'],
                 $clientConfig['client_id'],
@@ -45,39 +45,39 @@ final class N8nExtension extends Extension
                 $clientConfig['circuit_breaker_threshold'],
                 $clientConfig['circuit_breaker_timeout_seconds'],
                 $clientConfig['dry_run'],
-                $clientConfig['default_headers']
+                $clientConfig['default_headers'],
             ]);
             $container->setDefinition($configId, $configDefinition);
 
-            $httpClientId = sprintf('n8n.http_client.%s', $name);
+            $httpClientId = \sprintf('n8n.http_client.%s', $name);
             $httpClientDefinition = new Definition();
             $httpClientDefinition->setClass('Freema\N8nBundle\Http\N8nHttpClient');
             $httpClientDefinition->setArguments([
                 new Reference($configId),
-                null
+                null,
             ]);
             $container->setDefinition($httpClientId, $httpClientDefinition);
 
             if ($clientConfig['retry_attempts'] > 0) {
-                $retryHandlerId = sprintf('n8n.retry_handler.%s', $name);
+                $retryHandlerId = \sprintf('n8n.retry_handler.%s', $name);
                 $retryHandlerDefinition = new Definition(RetryHandler::class, [
                     new Reference('event_dispatcher'),
                     $clientConfig['retry_attempts'],
-                    $clientConfig['retry_delay_ms']
+                    $clientConfig['retry_delay_ms'],
                 ]);
                 $container->setDefinition($retryHandlerId, $retryHandlerDefinition);
             }
 
             if ($clientConfig['enable_circuit_breaker']) {
-                $circuitBreakerId = sprintf('n8n.circuit_breaker.%s', $name);
+                $circuitBreakerId = \sprintf('n8n.circuit_breaker.%s', $name);
                 $circuitBreakerDefinition = new Definition(CircuitBreaker::class, [
                     $clientConfig['circuit_breaker_threshold'],
-                    $clientConfig['circuit_breaker_timeout_seconds']
+                    $clientConfig['circuit_breaker_timeout_seconds'],
                 ]);
                 $container->setDefinition($circuitBreakerId, $circuitBreakerDefinition);
             }
 
-            $clientId = sprintf('n8n.client.%s', $name);
+            $clientId = \sprintf('n8n.client.%s', $name);
             $clientDefinition = new Definition();
             $clientDefinition->setClass('Freema\N8nBundle\Service\N8nClient');
             $clientDefinition->setArguments([
@@ -88,7 +88,7 @@ final class N8nExtension extends Extension
                 new Reference('router'),
                 new Reference('n8n.response_mapper'),
                 isset($retryHandlerId) ? new Reference($retryHandlerId) : null,
-                isset($circuitBreakerId) ? new Reference($circuitBreakerId) : null
+                isset($circuitBreakerId) ? new Reference($circuitBreakerId) : null,
             ]);
             $container->setDefinition($clientId, $clientDefinition);
 
@@ -124,7 +124,7 @@ final class N8nExtension extends Extension
             $dataCollectorDefinition->addTag('data_collector', [
                 'template' => '@N8n/Collector/n8n.html.twig',
                 'id' => 'n8n',
-                'priority' => 250
+                'priority' => 250,
             ]);
             $container->setDefinition('n8n.data_collector', $dataCollectorDefinition);
         }

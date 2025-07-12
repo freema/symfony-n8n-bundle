@@ -16,7 +16,7 @@ final class CleanupCommand extends Command
 {
     public function __construct(
         private readonly RequestTracker $requestTracker,
-        private readonly int $maxAgeSeconds
+        private readonly int $maxAgeSeconds,
     ) {
         parent::__construct();
     }
@@ -24,15 +24,15 @@ final class CleanupCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
+
         $expiredCount = $this->requestTracker->clearExpiredRequests($this->maxAgeSeconds);
-        
+
         if ($expiredCount > 0) {
-            $io->success(sprintf('Cleaned up %d expired N8n requests', $expiredCount));
+            $io->success(\sprintf('Cleaned up %d expired N8n requests', $expiredCount));
         } else {
             $io->info('No expired N8n requests found');
         }
-        
+
         return Command::SUCCESS;
     }
 }

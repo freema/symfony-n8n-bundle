@@ -14,13 +14,14 @@ final class ForumPost implements N8nPayloadInterface
         private readonly int $id,
         private readonly string $text,
         private readonly ?string $returnUrl = null,
-        private readonly ?N8nResponseHandlerInterface $responseHandler = null
-    ) {}
+        private readonly ?N8nResponseHandlerInterface $responseHandler = null,
+    ) {
+    }
 
     public function toN8nPayload(): array
     {
         $payload = [
-            'text' => $this->text
+            'text' => $this->text,
         ];
 
         if ($this->returnUrl !== null) {
@@ -35,7 +36,7 @@ final class ForumPost implements N8nPayloadInterface
         return [
             'entity_type' => 'forum_post',
             'entity_id' => $this->id,
-            'action' => 'moderate'
+            'action' => 'moderate',
         ];
     }
 
@@ -51,7 +52,7 @@ final class ForumPost implements N8nPayloadInterface
 
     public function getN8nResponseClass(): ?string
     {
-        return \Freema\N8nBundle\Dev\Entity\ModerationResponse::class;
+        return ModerationResponse::class;
     }
 
     public function getId(): int

@@ -16,50 +16,55 @@ final class RetryHandler
     public function __construct(
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly int $maxAttempts = 3,
-        private readonly int $delayMs = 1000
-    ) {}
-    
+        private readonly int $delayMs = 1000,
+    ) {
+    }
+
     public function executeWithRetry(callable $operation, N8nRequest $request): mixed
     {
         $lastException = null;
-        
-        for ($attempt = 1; $attempt <= $this->maxAttempts; $attempt++) {
+
+        for ($attempt = 1; $attempt <= $this->maxAttempts; ++$attempt) {
             try {
                 return $operation();
             } catch (\Throwable $e) {
                 $lastException = $e;
-                
+
                 if ($attempt < $this->maxAttempts && $this->isRetryableException($e)) {
                     $this->eventDispatcher->dispatch(
                         new N8nRetryEvent($request, $e, $attempt, $this->maxAttempts),
-                        N8nRetryEvent::NAME
+                        N8nRetryEvent::NAME,
                     );
-                    
+
                     $this->delay($attempt);
                 } else {
                     $this->eventDispatcher->dispatch(
                         new N8nRequestFailedEvent($request, $e, $attempt),
-                        N8nRequestFailedEvent::NAME
+                        N8nRequestFailedEvent::NAME,
                     );
-                    
+
                     break;
                 }
             }
         }
-        
-        throw $lastException;
+
+        if ($lastException !== null) {
+            throw $lastException;
+        }
+
+        throw new N8nCommunicationException('Retry operation failed without exception');
     }
-    
+
     private function isRetryableException(\Throwable $e): bool
     {
-        return $e instanceof N8nTimeoutException 
+        return $e instanceof N8nTimeoutException
             || ($e instanceof N8nCommunicationException && $e->getCode() >= 500);
     }
-    
+
     private function delay(int $attempt): void
     {
-        $delayMs = $this->delayMs * pow(2, $attempt - 1);
-        
+        $delayMs = $this->delayMs * 2 ** ($attempt - 1);
+
         usleep($delayMs * 1000);
     }
 }

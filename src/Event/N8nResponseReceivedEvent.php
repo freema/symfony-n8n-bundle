@@ -10,12 +10,13 @@ use Symfony\Contracts\EventDispatcher\Event;
 final class N8nResponseReceivedEvent extends Event
 {
     public const NAME = 'n8n.response.received';
-    
+
     public function __construct(
         public readonly N8nResponse $response,
-        public readonly ?\Throwable $error = null
-    ) {}
-    
+        public readonly ?\Throwable $error = null,
+    ) {
+    }
+
     public function isSuccessful(): bool
     {
         return $this->error === null;

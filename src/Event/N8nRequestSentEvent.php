@@ -10,10 +10,11 @@ use Symfony\Contracts\EventDispatcher\Event;
 final class N8nRequestSentEvent extends Event
 {
     public const NAME = 'n8n.request.sent';
-    
+
     public function __construct(
         public readonly N8nRequest $request,
         public readonly ?int $httpStatusCode = null,
-        public readonly ?string $responseBody = null
-    ) {}
+        public readonly ?string $responseBody = null,
+    ) {
+    }
 }

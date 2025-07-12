@@ -10,14 +10,15 @@ use Psr\Log\LoggerInterface;
 final class ForumPostModerationHandler implements N8nResponseHandlerInterface
 {
     public function __construct(
-        private readonly LoggerInterface $logger
-    ) {}
+        private readonly LoggerInterface $logger,
+    ) {
+    }
 
     public function handleN8nResponse(array $responseData, string $requestUuid): void
     {
         $this->logger->info('Processing forum post moderation response', [
             'uuid' => $requestUuid,
-            'response' => $responseData
+            'response' => $responseData,
         ]);
 
         $bundleData = $responseData['_n8n_bundle'] ?? [];
@@ -25,6 +26,7 @@ final class ForumPostModerationHandler implements N8nResponseHandlerInterface
 
         if (!isset($context['entity_id'])) {
             $this->logger->error('Missing entity_id in response context');
+
             return;
         }
 
@@ -41,7 +43,7 @@ final class ForumPostModerationHandler implements N8nResponseHandlerInterface
             'spam_score' => $spamScore,
             'sentiment' => $sentiment,
             'flags' => $flags,
-            'suggested_action' => $suggestedAction
+            'suggested_action' => $suggestedAction,
         ]);
 
         switch ($suggestedAction) {
@@ -73,7 +75,7 @@ final class ForumPostModerationHandler implements N8nResponseHandlerInterface
     {
         $this->logger->info('Queueing forum post for manual review', [
             'post_id' => $postId,
-            'flags' => $flags
+            'flags' => $flags,
         ]);
     }
 
@@ -81,7 +83,7 @@ final class ForumPostModerationHandler implements N8nResponseHandlerInterface
     {
         $this->logger->info('Blocking forum post', [
             'post_id' => $postId,
-            'flags' => $flags
+            'flags' => $flags,
         ]);
     }
 }

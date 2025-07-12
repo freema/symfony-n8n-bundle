@@ -25,7 +25,7 @@ interface N8nClientInterface
      * @return array Response data containing uuid, response, mapped_response, and status_code
      */
     public function send(N8nPayloadInterface $payload, string $workflowId, CommunicationMode $mode = CommunicationMode::FIRE_AND_FORGET): array;
-    
+
     /**
      * Send payload to n8n workflow with callback handler for async processing
      *
@@ -35,7 +35,7 @@ interface N8nClientInterface
      * @return string The UUID of the request for tracking
      */
     public function sendWithCallback(N8nPayloadInterface $payload, string $workflowId, N8nResponseHandlerInterface $handler): string;
-    
+
     /**
      * Send payload to n8n workflow synchronously and wait for response
      *
@@ -45,14 +45,14 @@ interface N8nClientInterface
      * @return array The response data from n8n
      */
     public function sendSync(N8nPayloadInterface $payload, string $workflowId, int $timeoutSeconds = 30): array;
-    
+
     /**
      * Get the client identifier for this n8n client instance
      *
      * @return string The client ID configured for this instance
      */
     public function getClientId(): string;
-    
+
     /**
      * Check if the n8n connection is healthy and responsive
      *

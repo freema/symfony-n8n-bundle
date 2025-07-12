@@ -20,11 +20,11 @@ interface N8nPayloadInterface extends N8nResponseMappableInterface
      * @return array The payload data that will be sent to n8n
      */
     public function toN8nPayload(): array;
-    
+
     /**
      * Get contextual information about this payload for tracking and logging
      *
-     * @return array Context data including entity type, ID, action, etc.
+     * @return array context data including entity type, ID, action, etc
      */
     public function getN8nContext(): array;
 

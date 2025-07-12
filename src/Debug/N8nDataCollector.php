@@ -7,7 +7,6 @@ namespace Freema\N8nBundle\Debug;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\VarDumper\Cloner\Data;
 
 class N8nDataCollector extends AbstractDataCollector
 {
@@ -15,19 +14,19 @@ class N8nDataCollector extends AbstractDataCollector
     private array $responses = [];
     private array $errors = [];
 
-    public function collect(Request $request, Response $response, \Throwable $exception = null): void
+    public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
     {
         $this->data = [
             'requests' => $this->requests,
             'responses' => $this->responses,
             'errors' => $this->errors,
-            'total_requests' => count($this->requests),
-            'total_errors' => count($this->errors),
+            'total_requests' => \count($this->requests),
+            'total_errors' => \count($this->errors),
             'total_time' => array_sum(array_column($this->requests, 'duration')),
         ];
     }
 
-    public function addRequest(string $method, string $url, array $payload, float $duration, string $uuid = null): void
+    public function addRequest(string $method, string $url, array $payload, float $duration, ?string $uuid = null): void
     {
         $this->requests[] = [
             'method' => $method,
@@ -48,7 +47,7 @@ class N8nDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function addError(string $uuid, string $error, \Throwable $exception = null): void
+    public function addError(string $uuid, string $error, ?\Throwable $exception = null): void
     {
         $this->errors[$uuid] = [
             'error' => $error,

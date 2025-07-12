@@ -19,7 +19,7 @@ interface N8nResponseHandlerInterface
      * @param string $requestUuid The UUID of the original request for tracking
      */
     public function handleN8nResponse(array $responseData, string $requestUuid): void;
-    
+
     /**
      * Get unique identifier for this response handler
      *

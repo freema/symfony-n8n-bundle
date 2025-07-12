@@ -10,10 +10,11 @@ use Symfony\Contracts\EventDispatcher\Event;
 final class N8nRequestFailedEvent extends Event
 {
     public const NAME = 'n8n.request.failed';
-    
+
     public function __construct(
         public readonly N8nRequest $request,
         public readonly \Throwable $error,
-        public readonly int $attemptNumber = 1
-    ) {}
+        public readonly int $attemptNumber = 1,
+    ) {
+    }
 }

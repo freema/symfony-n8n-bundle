@@ -10,11 +10,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 final class N8nRetryEvent extends Event
 {
     public const NAME = 'n8n.request.retry';
-    
+
     public function __construct(
         public readonly N8nRequest $request,
         public readonly \Throwable $previousError,
         public readonly int $attemptNumber,
-        public readonly int $maxAttempts
-    ) {}
+        public readonly int $maxAttempts,
+    ) {
+    }
 }

@@ -30,8 +30,9 @@ class ResponseMapper
             throw new \InvalidArgumentException("Class {$className} does not exist");
         }
 
+        /** @var \ReflectionClass<T> $reflection */
         $reflection = new \ReflectionClass($className);
-        
+
         // Try constructor with parameters first
         $constructor = $reflection->getConstructor();
         if ($constructor && $constructor->getNumberOfRequiredParameters() > 0) {
@@ -42,33 +43,43 @@ class ResponseMapper
         return $this->createWithProperties($reflection, $data);
     }
 
+    /**
+     * @template T of object
+     * @param \ReflectionClass<T> $reflection
+     * @return T
+     */
     private function createWithConstructor(\ReflectionClass $reflection, \ReflectionMethod $constructor, array $data): object
     {
         $args = [];
         foreach ($constructor->getParameters() as $param) {
             $paramName = $param->getName();
             $value = $data[$paramName] ?? null;
-            
+
             if ($value === null && !$param->isOptional()) {
                 throw new \InvalidArgumentException("Required parameter '{$paramName}' not found in response data");
             }
-            
+
             $args[] = $value;
         }
-        
+
         return $reflection->newInstanceArgs($args);
     }
 
+    /**
+     * @template T of object
+     * @param \ReflectionClass<T> $reflection
+     * @return T
+     */
     private function createWithProperties(\ReflectionClass $reflection, array $data): object
     {
         $object = $reflection->newInstance();
-        
+
         foreach ($data as $key => $value) {
             if ($this->propertyAccessor->isWritable($object, $key)) {
                 $this->propertyAccessor->setValue($object, $key, $value);
             }
         }
-        
+
         return $object;
     }
 }

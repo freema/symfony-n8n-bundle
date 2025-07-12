@@ -17,11 +17,12 @@ final readonly class N8nConfig
         public int $circuitBreakerThreshold = 5,
         public int $circuitBreakerTimeoutSeconds = 60,
         public bool $dryRun = false,
-        public array $defaultHeaders = []
-    ) {}
-    
+        public array $defaultHeaders = [],
+    ) {
+    }
+
     public function getWebhookUrl(string $workflowId): string
     {
-        return rtrim($this->baseUrl, '/') . '/webhook/' . $workflowId;
+        return rtrim($this->baseUrl, '/').'/webhook/'.$workflowId;
     }
 }

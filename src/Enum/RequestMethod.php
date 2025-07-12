@@ -16,7 +16,7 @@ enum RequestMethod: string
 
     public function getHttpMethod(): string
     {
-        return match($this) {
+        return match ($this) {
             self::GET => 'GET',
             self::POST_JSON, self::POST_FORM => 'POST',
             self::PUT_JSON, self::PUT_FORM => 'PUT',
@@ -26,7 +26,7 @@ enum RequestMethod: string
 
     public function getContentType(): ?string
     {
-        return match($this) {
+        return match ($this) {
             self::GET => null,
             self::POST_JSON, self::PUT_JSON, self::PATCH_JSON => 'application/json',
             self::POST_FORM, self::PUT_FORM, self::PATCH_FORM => 'application/x-www-form-urlencoded',
@@ -35,19 +35,19 @@ enum RequestMethod: string
 
     public function isFormData(): bool
     {
-        return in_array($this, [
+        return \in_array($this, [
             self::POST_FORM,
             self::PUT_FORM,
-            self::PATCH_FORM
+            self::PATCH_FORM,
         ], true);
     }
 
     public function isJsonData(): bool
     {
-        return in_array($this, [
+        return \in_array($this, [
             self::POST_JSON,
             self::PUT_JSON,
-            self::PATCH_JSON
+            self::PATCH_JSON,
         ], true);
     }
 }
