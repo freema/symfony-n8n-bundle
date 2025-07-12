@@ -98,7 +98,6 @@ class DevKernel extends Kernel
             ],
             'debug' => [
                 'enabled' => true,
-                'collect_requests' => true,
                 'log_requests' => true,
             ],
         ]);

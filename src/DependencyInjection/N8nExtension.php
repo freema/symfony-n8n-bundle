@@ -114,13 +114,12 @@ final class N8nExtension extends Extension
     {
         // Auto-detect debug mode based on kernel.debug if not explicitly set
         $debugEnabled = $debugConfig['enabled'] ?? '%kernel.debug%';
-        
+
         $container->setParameter('n8n.debug.enabled', $debugEnabled);
-        $container->setParameter('n8n.debug.collect_requests', $debugConfig['collect_requests']);
         $container->setParameter('n8n.debug.log_requests', $debugConfig['log_requests']);
 
-        // Register data collector only if debug is enabled and web profiler is available
-        if ($debugConfig['collect_requests'] && $container->hasDefinition('profiler')) {
+        // Register data collector only if web profiler is available
+        if ($container->hasDefinition('profiler')) {
             $dataCollectorDefinition = new Definition('Freema\N8nBundle\Debug\N8nDataCollector');
             $dataCollectorDefinition->addTag('data_collector', [
                 'template' => '@N8n/Collector/n8n.html.twig',
