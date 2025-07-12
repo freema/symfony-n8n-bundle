@@ -17,7 +17,7 @@
 {% block toolbar %}
     {% set icon %}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+            <path d="M13 3v6h8l-8 12v-6H5l8-12z"/>
         </svg>
         <span class="sf-toolbar-value">{{ collector.totalRequests }}</span>
         {% if collector.totalErrors > 0 %}
@@ -55,7 +55,7 @@
     <span class="label {{ collector.totalErrors > 0 ? 'label-status-error' : '' }}">
         <span class="icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                <path d="M13 3v6h8l-8 12v-6H5l8-12z"/>
             </svg>
         </span>
         <strong>N8n</strong>

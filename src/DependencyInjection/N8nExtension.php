@@ -118,8 +118,8 @@ final class N8nExtension extends Extension
         $container->setParameter('n8n.debug.enabled', $debugEnabled);
         $container->setParameter('n8n.debug.log_requests', $debugConfig['log_requests']);
 
-        // Register data collector only if web profiler is available
-        if ($container->hasDefinition('profiler')) {
+        // Register data collector only when debug is enabled
+        if ($debugEnabled === true || $debugEnabled === '%kernel.debug%') {
             $dataCollectorDefinition = new Definition('Freema\N8nBundle\Debug\N8nDataCollector');
             $dataCollectorDefinition->addTag('data_collector', [
                 'template' => '@N8n/Collector/n8n.html.twig',
