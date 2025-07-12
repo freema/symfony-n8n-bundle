@@ -1,0 +1,10 @@
+parameters:
+    level: max
+    paths:
+        - src
+    excludePaths:
+        - tests
+        - src/DependencyInjection/
+        - src/N8nBundle.php
+    ignoreErrors:
+        - identifier: missingType.iterableValue

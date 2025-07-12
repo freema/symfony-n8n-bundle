@@ -1,0 +1,63 @@
+{
+    "name": "freema/n8n-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony bundle for elegant integration with n8n workflow automation platform",
+    "keywords": ["symfony", "n8n", "workflow", "automation", "webhook"],
+    "homepage": "https://github.com/freema/n8n-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Freema (tomas grasa)",
+            "homepage": "https://github.com/freema"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "symfony/framework-bundle": "^6.4|^7.0",
+        "symfony/http-client": "^6.4|^7.0",
+        "symfony/uid": "^6.4|^7.0",
+        "symfony/routing": "^6.4|^7.0",
+        "symfony/event-dispatcher": "^6.4|^7.0",
+        "symfony/console": "^6.4|^7.0",
+        "symfony/config": "^6.4|^7.0",
+        "symfony/dependency-injection": "^6.4|^7.0",
+        "symfony/yaml": "^6.4|^7.0",
+        "psr/log": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "symfony/phpunit-bridge": "^6.4|^7.0",
+        "symfony/var-dumper": "^6.4|^7.0",
+        "phpstan/phpstan": "^1.10",
+        "friendsofphp/php-cs-fixer": "^3.14",
+        "symfony/web-profiler-bundle": "^6.4|^7.0",
+        "symfony/twig-bundle": "^6.4|^7.0",
+        "symfony/monolog-bundle": "^3.0",
+        "symfony/dotenv": "^6.4|^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Freema\\N8nBundle\\": "src/",
+            "Freema\\N8nBundle\\Dev\\": "dev/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Freema\\N8nBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "stan": "phpstan analyse"
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "^6.4|^7.0"
+        }
+    }
+}

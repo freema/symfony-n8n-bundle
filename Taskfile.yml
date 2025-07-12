@@ -1,0 +1,92 @@
+version: '3'
+
+vars:
+  COMPOSE: docker compose
+  CONTAINER_NAME: n8n-bundle-php
+
+tasks:
+  # Setup Development Environment
+  init:
+    desc: 'Initialize development environment'
+    cmds:
+      - task: up
+      - task: composer:install
+    aliases: ['i']
+
+  composer:install:
+    desc: 'Install composer dependencies'
+    cmd: |
+      docker exec {{ .CONTAINER_NAME }} sh -c "
+        if ! command -v composer > /dev/null 2>&1; then
+          echo 'Installing Composer...'
+          curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+        fi
+        composer install --no-interaction
+      "
+    aliases: ['install']
+
+  # Docker Management
+  up:
+    desc: 'Start development environment'
+    cmd: |
+      {{ .COMPOSE }} up -d
+    aliases: ['u']
+
+  down:
+    desc: 'Stop development environment'
+    cmd: '{{ .COMPOSE }} down'
+    aliases: ['d']
+
+  restart:
+    desc: 'Restart development environment'
+    cmds:
+      - task: down
+      - task: up
+    aliases: ['r']
+
+  logs:
+    desc: 'Show container logs'
+    cmd: '{{ .COMPOSE }} logs -f'
+    aliases: ['l']
+
+  # Development Tasks
+  shell:
+    desc: 'Open shell in PHP container'
+    cmd: 'docker exec -it {{ .CONTAINER_NAME }} sh'
+    aliases:
+      - sh
+
+  serve:
+    desc: 'Start development server'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} php -S 0.0.0.0:8080 -t dev/'
+    aliases:
+      - dev
+
+  # Testing
+  test:health:
+    desc: 'Check application health'
+    cmd: 'curl -X GET http://localhost:8080/demo/health'
+
+  test:
+    desc: 'Run PHPUnit tests'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpunit'
+
+  # Code Quality
+  stan:
+    desc: 'Run PHPStan analysis'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/phpstan analyse'
+
+  cs:
+    desc: 'Check code style'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/php-cs-fixer fix --dry-run --diff'
+
+  cs:fix:
+    desc: 'Fix code style'
+    cmd: 'docker exec {{ .CONTAINER_NAME }} vendor/bin/php-cs-fixer fix'
+    aliases:
+      - fixer
+
+  default:
+    desc: 'Show available commands'
+    cmds:
+      - task --list

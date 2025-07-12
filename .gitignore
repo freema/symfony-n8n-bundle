@@ -50,3 +50,21 @@
 
 # Embedded web-server pid file
 /.web-server-pid
+
+# development environment
+/old
+
+# Local environment files
+.env.local
+.env.*.local
+
+# Dev application cache and logs
+/dev/cache/
+/dev/log/
+
+# Code quality tools
+.php-cs-fixer.cache
+.phpstan/
+
+# IDE
+.idea/
