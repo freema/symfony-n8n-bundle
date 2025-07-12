@@ -23,11 +23,12 @@ final class N8nClient implements N8nClientInterface
         private readonly UuidGenerator $uuidGenerator,
         private readonly RequestTracker $requestTracker,
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly ResponseMapper $responseMapper,
         private readonly ?RetryHandler $retryHandler = null,
         private readonly ?CircuitBreaker $circuitBreaker = null
     ) {}
     
-    public function send(N8nPayloadInterface $payload, string $workflowId, CommunicationMode $mode = CommunicationMode::FIRE_AND_FORGET): string
+    public function send(N8nPayloadInterface $payload, string $workflowId, CommunicationMode $mode = CommunicationMode::FIRE_AND_FORGET): array
     {
         $request = new N8nRequest(
             uuid: $this->uuidGenerator->generate(),
@@ -39,16 +40,16 @@ final class N8nClient implements N8nClientInterface
         );
         
         $this->requestTracker->trackRequest($request);
-        
+
+        $this->circuitBreaker?->checkAndThrow();
+
+        $operation = fn() => $this->httpClient->sendWebhook($request);
+        $response = $this->retryHandler !== null
+            ? $this->retryHandler->executeWithRetry($operation, $request)
+            : $operation();
+
+
         try {
-            $this->circuitBreaker?->checkAndThrow();
-            
-            $operation = fn() => $this->httpClient->sendWebhook($request);
-            
-            $response = $this->retryHandler !== null
-                ? $this->retryHandler->executeWithRetry($operation, $request)
-                : $operation();
-            
             if ($response->getStatusCode() >= 400) {
                 $exception = new N8nCommunicationException(
                     'N8n webhook returned error: ' . $response->getContent(false),
@@ -59,7 +60,33 @@ final class N8nClient implements N8nClientInterface
             }
             
             $this->circuitBreaker?->recordSuccess();
-            return $request->uuid;
+            
+            // Parse response data
+            $responseData = json_decode($response->getContent(), true) ?? [];
+            
+            // Map response to entity if class is specified
+            $mappedResponse = null;
+            $responseClass = $payload->getN8nResponseClass();
+            if ($responseClass !== null) {
+                try {
+                    $mappedResponse = $this->responseMapper->mapToClass($responseData, $responseClass);
+                } catch (\Exception $e) {
+                    // Log mapping error but continue with raw data
+                }
+            }
+            
+            // Handle response through custom handler if provided
+            $responseHandler = $payload->getN8nResponseHandler();
+            if ($responseHandler !== null) {
+                $responseHandler->handleN8nResponse($responseData, $request->uuid);
+            }
+            
+            return [
+                'uuid' => $request->uuid,
+                'response' => $responseData,
+                'mapped_response' => $mappedResponse,
+                'status_code' => $response->getStatusCode()
+            ];
         } catch (\Throwable $e) {
             $this->requestTracker->completeRequest($request->uuid);
             throw $e;
@@ -82,10 +109,11 @@ final class N8nClient implements N8nClientInterface
         );
         
         $this->requestTracker->trackRequest($request);
+
+        $response = $this->httpClient->sendWebhook($request);
         
         try {
-            $response = $this->httpClient->sendWebhook($request);
-            
+
             if ($response->getStatusCode() >= 400) {
                 throw new N8nCommunicationException(
                     'N8n webhook returned error: ' . $response->getContent(false),
@@ -95,6 +123,8 @@ final class N8nClient implements N8nClientInterface
             
             return $request->uuid;
         } catch (\Throwable $e) {
+            dump($e);
+            die();
             $this->requestTracker->completeRequest($request->uuid);
             throw $e;
         }

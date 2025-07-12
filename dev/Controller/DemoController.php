@@ -6,6 +6,7 @@ namespace Freema\N8nBundle\Dev\Controller;
 
 use Freema\N8nBundle\Dev\Entity\ForumPost;
 use Freema\N8nBundle\Dev\Service\ForumPostModerationHandler;
+use Freema\N8nBundle\Dev\Service\ModerationResponseHandler;
 use Freema\N8nBundle\Contract\N8nClientInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,7 +17,8 @@ final class DemoController extends AbstractController
 {
     public function __construct(
         private readonly N8nClientInterface $n8nClient,
-        private readonly ForumPostModerationHandler $moderationHandler
+        private readonly ForumPostModerationHandler $moderationHandler,
+        private readonly ModerationResponseHandler $responseHandler
     ) {}
 
     public function fireAndForget(Request $request): JsonResponse
@@ -26,18 +28,18 @@ final class DemoController extends AbstractController
 
         $post = new ForumPost(
             id: 1,
-            content: $data['text'] ?? 'Hello from Symfony!',
-            authorId: 123,
-            createdAt: new \DateTimeImmutable(),
-            threadId: 'thread-456'
+            text: $data['text'] ?? 'Hello from Symfony!',
+            returnUrl: null,
+            responseHandler: $this->responseHandler
         );
 
-        $uuid = $this->n8nClient->send($post, $_ENV['N8N_WEBHOOK_FIRE_AND_FORGET']);
+        $result = $this->n8nClient->send($post, $_ENV['N8N_WEBHOOK_FIRE_AND_FORGET']);
 
         return new JsonResponse([
             'status' => 'sent',
-            'uuid' => $uuid,
-            'mode' => 'fire_and_forget'
+            'uuid' => $result['uuid'],
+            'mode' => 'fire_and_forget',
+            'n8n_response' => $result['response']
         ]);
     }
 
@@ -48,10 +50,9 @@ final class DemoController extends AbstractController
 
         $post = new ForumPost(
             id: 2,
-            content: $data['text'] ?? 'Please check this message for moderation',
-            authorId: 456,
-            createdAt: new \DateTimeImmutable(),
-            threadId: 'thread-789'
+            text: $data['text'] ?? 'Please check this message for moderation',
+            returnUrl: $data['returnUrl'] ?? null,
+            responseHandler: $this->responseHandler
         );
 
         $uuid = $this->n8nClient->sendWithCallback(
@@ -74,10 +75,8 @@ final class DemoController extends AbstractController
 
         $post = new ForumPost(
             id: 3,
-            content: $data['text'] ?? 'Test synchronous message',
-            authorId: 789,
-            createdAt: new \DateTimeImmutable(),
-            threadId: 'thread-sync'
+            text: $data['text'] ?? 'Test synchronous message',
+            returnUrl: $data['returnUrl'] ?? null
         );
 
         try {

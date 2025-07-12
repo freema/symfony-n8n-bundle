@@ -86,6 +86,7 @@ final class N8nExtension extends Extension
                 new Reference('n8n.uuid_generator'),
                 new Reference('n8n.request_tracker'),
                 new Reference('router'),
+                new Reference('n8n.response_mapper'),
                 isset($retryHandlerId) ? new Reference($retryHandlerId) : null,
                 isset($circuitBreakerId) ? new Reference($circuitBreakerId) : null
             ]);

@@ -30,6 +30,7 @@
 !bin/console
 !bin/symfony_requirements
 /vendor/
+composer.lock
 
 # Assets and user uploads
 /web/bundles/
@@ -55,8 +56,10 @@
 /old
 
 # Local environment files
+.env
 .env.local
 .env.*.local
+dev/.env
 
 # Dev application cache and logs
 /dev/cache/

@@ -12,6 +12,10 @@ services:
     class: Freema\N8nBundle\Service\RequestTracker
     public: false
 
+  n8n.response_mapper:
+    class: Freema\N8nBundle\Service\ResponseMapper
+    public: false
+
   n8n.callback_handler:
     class: Freema\N8nBundle\Service\CallbackHandler
     arguments:

@@ -57,6 +57,8 @@ n8n:
 <?php
 
 use Freema\N8nBundle\Contract\N8nPayloadInterface;
+use Freema\N8nBundle\Contract\N8nResponseHandlerInterface;
+use Freema\N8nBundle\Enum\RequestMethod;
 
 class ForumPost implements N8nPayloadInterface
 {
@@ -77,6 +79,24 @@ class ForumPost implements N8nPayloadInterface
             'action' => 'moderate'
         ];
     }
+
+    // Volitelné: definuj HTTP metodu a content type
+    public function getN8nRequestMethod(): RequestMethod
+    {
+        return RequestMethod::POST_FORM; // nebo POST_JSON, GET, atd.
+    }
+
+    // Volitelné: vlastní response handler
+    public function getN8nResponseHandler(): ?N8nResponseHandlerInterface
+    {
+        return new ModerationResponseHandler();
+    }
+
+    // Volitelné: mapování response na entitu
+    public function getN8nResponseClass(): ?string
+    {
+        return ModerationResponse::class;
+    }
 }
 ```
 
@@ -85,8 +105,9 @@ class ForumPost implements N8nPayloadInterface
 ```php
 <?php
 
-// Fire & Forget
-$uuid = $n8nClient->send($post, 'workflow-id');
+// Fire & Forget - vrací response data ihned
+$result = $n8nClient->send($post, 'workflow-id');
+// $result = ['uuid' => '...', 'response' => [...], 'mapped_response' => object, 'status_code' => 200]
 
 // Async s callback
 $uuid = $n8nClient->sendWithCallback($post, 'workflow-id', $responseHandler);
@@ -98,10 +119,11 @@ $result = $n8nClient->sendSync($post, 'workflow-id');
 ## Komunikační módy
 
 ### Fire & Forget
-Pošle data do n8n a nepotřebuje odpověď.
+Pošle data do n8n a vrátí okamžitou odpověď z webhooku.
 
 ```php
-$uuid = $n8nClient->send($payload, 'workflow-id');
+$result = $n8nClient->send($payload, 'workflow-id');
+// Vrací: ['uuid' => '...', 'response' => {...}, 'mapped_response' => object|null, 'status_code' => 200]
 ```
 
 ### Async s callbackem
@@ -130,6 +152,75 @@ $uuid = $n8nClient->sendWithCallback($payload, 'workflow-id', new MyResponseHand
 ```php
 $result = $n8nClient->sendSync($payload, 'workflow-id', 30); // 30s timeout
 ```
+
+## HTTP metody a content typy
+
+Bundle podporuje různé HTTP metody a content typy:
+
+```php
+use Freema\N8nBundle\Enum\RequestMethod;
+
+class MyPayload implements N8nPayloadInterface
+{
+    public function getN8nRequestMethod(): RequestMethod
+    {
+        return RequestMethod::POST_FORM;  // Form data (application/x-www-form-urlencoded)
+        // return RequestMethod::POST_JSON;  // JSON body (application/json)
+        // return RequestMethod::GET;        // GET parametry
+        // return RequestMethod::PUT_JSON;   // PUT s JSON
+        // return RequestMethod::PATCH_FORM; // PATCH s form data
+    }
+}
+```
+
+## Response mapování na entity
+
+Můžeš automaticky mapovat n8n response na PHP objekty:
+
+```php
+// 1. Vytvoř response entitu
+class ModerationResponse
+{
+    public function __construct(
+        public readonly bool $allowed,
+        public readonly ?string $reason = null,
+        public readonly ?string $confidence = null
+    ) {}
+}
+
+// 2. Specifikuj třídu v payload
+class ForumPost implements N8nPayloadInterface
+{
+    public function getN8nResponseClass(): ?string
+    {
+        return ModerationResponse::class;
+    }
+}
+
+// 3. Použij namapovaný objekt
+$result = $n8nClient->send($post, 'workflow-id');
+$mappedResponse = $result['mapped_response']; // Instance ModerationResponse
+$isAllowed = $mappedResponse->allowed; // Type-safe přístup
+```
+
+## Debug panel
+
+Bundle obsahuje debug panel pro Symfony Web Profiler:
+
+```yaml
+# config/packages/n8n.yaml
+n8n:
+  debug:
+    enabled: true  # nebo null pro auto-detekci podle kernel.debug
+    collect_requests: true
+    log_requests: true
+```
+
+Panel zobrazuje:
+- Všechny N8n requesty s UUID, duration, status
+- Payload data a response data  
+- Chyby a jejich detaily
+- Celkový počet requestů a čas
 
 ## Monitoring a eventy
 

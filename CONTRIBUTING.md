@@ -34,10 +34,15 @@ src/
 ├── Event/             # Event objekty
 ├── Exception/         # Custom exceptions
 ├── Command/           # Symfony příkazy
+├── Enum/              # Enumerations (RequestMethod, CommunicationMode)
+├── Debug/             # Debug panel pro Web Profiler
 ├── DependencyInjection/  # DI konfigurace
 └── Resources/         # Konfigurace a templates
 
 dev/                   # Testovací aplikace
+├── Controller/        # Demo kontrolery
+├── Entity/           # Příklady payload a response entit
+└── Service/          # Příklady response handlerů
 tests/                 # Unit a integration testy
 ```
 
@@ -194,11 +199,20 @@ Fixes #123
 
 ### Rozšiřitelnost
 ```php
-// Nové payload typy
-interface N8nPayloadInterface
+// Nové payload typy s všemi možnostmi
+interface N8nPayloadInterface extends N8nResponseMappableInterface
 {
     public function toN8nPayload(): array;
     public function getN8nContext(): array;
+    
+    // Volitelné: HTTP metoda a content type
+    public function getN8nRequestMethod(): RequestMethod;
+    
+    // Volitelné: vlastní response handler
+    public function getN8nResponseHandler(): ?N8nResponseHandlerInterface;
+    
+    // Volitelné: response entity mapping
+    public function getN8nResponseClass(): ?string;
 }
 
 // Nové response handlery
@@ -207,21 +221,54 @@ interface N8nResponseHandlerInterface
     public function handleN8nResponse(array $responseData, string $requestUuid): void;
     public function getHandlerId(): string;
 }
+
+// Response entity pro type-safe práci s daty
+class CustomResponse
+{
+    public function __construct(
+        public readonly string $status,
+        public readonly array $data,
+        public readonly ?string $message = null
+    ) {}
+}
 ```
 
 ## Debugging
 
 ### Vývojové nástroje
 ```bash
-# Symfony Web Profiler
+# Symfony Web Profiler s N8n debug panelem
 task up
 task dev:serve
-# http://localhost:8000/_profiler
+# http://localhost:8080/_profiler
 
 # N8n komunikace debugging
 task n8n:ff        # Test fire & forget
 task n8n:cb        # Test callback
 task n8n:health    # Health check
+
+# Code quality
+task stan          # PHPStan analýza
+task cs            # Check code style
+task cs:fix        # Fix code style
+```
+
+### Debug panel
+Bundle obsahuje vlastní panel v Symfony Web Profiler který zobrazuje:
+- Všechny N8n requesty s UUID, duration a statusem
+- Request/response payload data
+- Mapped response objekty
+- Chyby a jejich stack traces
+- Performance metriky
+
+Pro povolení debug panelu:
+```yaml
+# config/packages/n8n.yaml
+n8n:
+  debug:
+    enabled: true  # nebo null pro auto-detekci
+    collect_requests: true
+    log_requests: true
 ```
 
 ### Logging

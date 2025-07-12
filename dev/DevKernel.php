@@ -82,7 +82,7 @@ class DevKernel extends Kernel
                     'enable_circuit_breaker' => true,
                     'circuit_breaker_threshold' => 5,
                     'circuit_breaker_timeout_seconds' => 60,
-                    'dry_run' => (bool) ($_ENV['N8N_DRY_RUN'] ?? true),
+                    'dry_run' => (bool) ($_ENV['N8N_DRY_RUN'] ?? false),
                 ],
                 'test' => [
                     'base_url' => 'https://test.n8n.cloud',
@@ -96,6 +96,11 @@ class DevKernel extends Kernel
                 'route_name' => 'n8n_callback',
                 'route_path' => '/api/n8n/callback',
             ],
+            'debug' => [
+                'enabled' => true,
+                'collect_requests' => true,
+                'log_requests' => true,
+            ],
         ]);
 
         // Create alias for default N8n client interface
@@ -107,6 +112,9 @@ class DevKernel extends Kernel
             ->addTag('controller.service_arguments');
 
         $container->autowire('Freema\N8nBundle\Dev\Service\ForumPostModerationHandler')
+            ->setAutoconfigured(true);
+
+        $container->autowire('Freema\N8nBundle\Dev\Service\ModerationResponseHandler')
             ->setAutoconfigured(true);
     }
 
