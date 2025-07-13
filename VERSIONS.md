@@ -1,96 +1,93 @@
 # Changelog
 
-Všechny významné změny v tomto projektu budou zdokumentovány v tomto souboru.
+All notable changes to this project will be documented in this file.
 
-Formát vychází z [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-a tento projekt dodržuje [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0] - 2025-07-13
 
 ### Added
-- Základní implementace N8n Bundle pro Symfony
-- Type-safe komunikace pomocí PHP interfaces (`N8nPayloadInterface`, `N8nResponseHandlerInterface`)
-- Tři komunikační módy: Fire & Forget, Async s callbackem, Sync
-- UUID tracking systém pro párování request/response
-- Robustní error handling s retry mechanikem a circuit breaker
-- Event-driven architektura pro monitoring a logging
-- Multi-instance podpora pro různá prostředí (dev/staging/prod)
-- Dry run mode pro testování bez skutečného odeslání
-- Symfony Web Profiler integrace
-- Docker vývojové prostředí s Taskfile.yml
-- Kompletní testovací aplikace s demo endpointy
-- Automatické logování všech N8n operací
-- Callback controller pro příjem odpovědí z N8n
-- Cleanup příkaz pro vyčištění starých requestů
-- Konfigurace přes Symfony config s validací
+- Core N8n Bundle implementation for Symfony
+- Type-safe communication using PHP interfaces (`N8nPayloadInterface`, `N8nResponseHandlerInterface`)
+- Three communication modes: Fire & Forget, Async with callback, Sync
+- UUID tracking system for request/response pairing
+- Robust error handling with retry mechanism and circuit breaker
+- Event-driven architecture for monitoring and logging
+- Multi-instance support for different environments (dev/staging/prod)
+- Dry run mode for testing without actual sending
+- Symfony Web Profiler integration with debug panel
+- Docker development environment with Taskfile.yml
+- Complete test application with demo endpoints
+- Automatic logging of all N8n operations
+- Callback controller for receiving responses from N8n
+- Cleanup command for removing old requests
+- Configuration through Symfony config with validation
+- Optional response entity mapping for type-safe handling
+- Environment variable support for sensitive data
 
 ### Technical Details
-- PHP 8.1+ podpora
-- Symfony 6.4+ a 7.0+ kompatibilita
+- PHP 8.2+ support
+- Symfony 6.4+ and 7.0+ compatibility
 - PSR-4 autoloading
-- Kompletní DI container integrace
-- Event subscriber pro automatické logování
-- HTTP client s konfigurovatelné timeout a retry
-- Circuit breaker pattern pro ochranu před přetížením
-
-## [1.0.0] - TBD
-
-### Added
-- První stabilní verze N8n Bundle
-- Kompletní dokumentace a příklady použití
-- Testovací pokrytí pro všechny hlavní komponenty
-- Production-ready konfigurace
+- Complete DI container integration
+- Event subscriber for automatic logging
+- HTTP client with configurable timeout and retry
+- Circuit breaker pattern for protection against overload
+- PHPStan static analysis integration
+- PHP CS Fixer code style enforcement
+- PHPUnit testing framework with coverage reports
+- GitHub Actions CI/CD pipeline
 
 ---
 
-## Formát změn
+## Change Format
 
-- **Added** - nové funkce
-- **Changed** - změny v existujících funkcích
-- **Deprecated** - funkce, které budou odstraněny
-- **Removed** - odstraněné funkce
-- **Fixed** - opravy chyb
-- **Security** - bezpečnostní opravy
+- **Added** - new features
+- **Changed** - changes in existing functionality
+- **Deprecated** - features that will be removed
+- **Removed** - removed features
+- **Fixed** - bug fixes
+- **Security** - security fixes
 
-## Kompatibilita
+## Compatibility
 
-### Symfony verze
+### Symfony versions
 - ✅ Symfony 6.4.x
 - ✅ Symfony 7.0.x
-- ✅ Symfony 7.1.x (plánováno)
+- ✅ Symfony 7.1.x (planned)
 
-### PHP verze
-- ✅ PHP 8.1
+### PHP versions
 - ✅ PHP 8.2
 - ✅ PHP 8.3
-- 🔄 PHP 8.4 (v testování)
+- 🔄 PHP 8.4 (in testing)
 
-### N8n verze
+### N8n versions
 - ✅ N8n 1.0+
 - ✅ N8n Cloud
 - ✅ Self-hosted N8n
 
-## Migrace
+## Migration
 
-### Z verze 0.x na 1.x
-TBD - bude doplněno při vydání první stable verze
+### From version 0.x to 1.x
+This is the first stable release - no migration needed.
 
-## Plánované funkce
+## Planned Features
 
 ### v1.1.0
-- [ ] Batch operace pro hromadné odesílání
-- [ ] Metriky a monitoring integrace (Prometheus)
+- [ ] Batch operations for bulk sending
+- [ ] Metrics and monitoring integration (Prometheus)
 - [ ] Webhook signature verification
-- [ ] Rozšířené retry strategie (exponential backoff)
+- [ ] Enhanced retry strategies (exponential backoff)
 
 ### v1.2.0
-- [ ] N8n REST API integrace (kromě webhooků)
-- [ ] Workflow management funkce
-- [ ] Caching layer pro často používané requesty
-- [ ] Rate limiting podpora
+- [ ] N8n REST API integration (beyond webhooks)
+- [ ] Workflow management features
+- [ ] Caching layer for frequently used requests
+- [ ] Rate limiting support
 
 ### v2.0.0
-- [ ] Async/await pattern s ReactPHP
-- [ ] Symfony Messenger integrace
-- [ ] GraphQL endpoint podpora
+- [ ] Async/await pattern with ReactPHP
+- [ ] Symfony Messenger integration
+- [ ] GraphQL endpoint support
 - [ ] Advanced security features

@@ -1,42 +1,42 @@
 # Symfony N8n Bundle
 
-Elegantní integrace mezi Symfony aplikacemi a n8n workflow automation platformou.
+Elegant integration between Symfony applications and n8n workflow automation platform.
 
-## Funkce
+## Features
 
-- **Type-safe komunikace** pomocí PHP interfaces
-- **UUID tracking systém** pro párování request/response
-- **Flexibilní komunikační módy**: Fire & Forget, Async s callbackem, Sync
-- **Robustní error handling** s retry a circuit breaker
-- **Event-driven architektura** pro monitoring a logging
-- **Multi-instance podpora** pro různá prostředí
-- **Dry run mode** pro testování bez skutečného odeslání
+- **Type-safe communication** using PHP interfaces
+- **UUID tracking system** for request/response pairing
+- **Flexible communication modes**: Fire & Forget, Async with callback, Sync
+- **Robust error handling** with retry and circuit breaker
+- **Event-driven architecture** for monitoring and logging
+- **Multi-instance support** for different environments
+- **Dry run mode** for testing without actual sending
 
-## Rychlý start
+## Quick Start
 
-### 1. Instalace
+### 1. Installation
 
 ```bash
 composer require freema/n8n-bundle
 ```
 
-### 2. Development s Docker a Taskfile
+### 2. Development with Docker and Taskfile
 
 ```bash
-# Instalace Task (https://taskfile.dev)
+# Install Task (https://taskfile.dev)
 brew install go-task/tap/go-task
 
-# Inicializace vývojového prostředí
+# Initialize development environment
 task init
 
-# Spuštění dev serveru
-task dev:serve
+# Start dev server
+task serve
 
-# Zobrazení dostupných příkazů
+# Show available commands
 task --list
 ```
 
-### 3. Konfigurace
+### 3. Configuration
 
 ```yaml
 # config/packages/n8n.yaml
@@ -51,7 +51,7 @@ n8n:
       enable_circuit_breaker: true
 ```
 
-### 4. Implementace entity
+### 4. Entity Implementation
 
 ```php
 <?php
@@ -80,19 +80,19 @@ class ForumPost implements N8nPayloadInterface
         ];
     }
 
-    // Volitelné: definuj HTTP metodu a content type
+    // Optional: define HTTP method and content type
     public function getN8nRequestMethod(): RequestMethod
     {
-        return RequestMethod::POST_FORM; // nebo POST_JSON, GET, atd.
+        return RequestMethod::POST_FORM; // or POST_JSON, GET, etc.
     }
 
-    // Volitelné: vlastní response handler
+    // Optional: custom response handler
     public function getN8nResponseHandler(): ?N8nResponseHandlerInterface
     {
         return new ModerationResponseHandler();
     }
 
-    // Volitelné: mapování response na entitu
+    // Optional: response entity mapping
     public function getN8nResponseClass(): ?string
     {
         return ModerationResponse::class;
@@ -100,41 +100,41 @@ class ForumPost implements N8nPayloadInterface
 }
 ```
 
-### 5. Použití
+### 5. Usage
 
 ```php
 <?php
 
-// Fire & Forget - vrací response data ihned
+// Fire & Forget - returns response data immediately
 $result = $n8nClient->send($post, 'workflow-id');
 // $result = ['uuid' => '...', 'response' => [...], 'mapped_response' => object, 'status_code' => 200]
 
-// Async s callback
+// Async with callback
 $uuid = $n8nClient->sendWithCallback($post, 'workflow-id', $responseHandler);
 
 // Sync
 $result = $n8nClient->sendSync($post, 'workflow-id');
 ```
 
-## Komunikační módy
+## Communication Modes
 
 ### Fire & Forget
-Pošle data do n8n a vrátí okamžitou odpověď z webhooku.
+Sends data to n8n and returns immediate response from webhook.
 
 ```php
 $result = $n8nClient->send($payload, 'workflow-id');
-// Vrací: ['uuid' => '...', 'response' => {...}, 'mapped_response' => object|null, 'status_code' => 200]
+// Returns: ['uuid' => '...', 'response' => {...}, 'mapped_response' => object|null, 'status_code' => 200]
 ```
 
-### Async s callbackem
-Pošle data + callback URL, n8n zpracuje a vrátí výsledek.
+### Async with Callback
+Sends data + callback URL, n8n processes and returns result.
 
 ```php
 class MyResponseHandler implements N8nResponseHandlerInterface
 {
     public function handleN8nResponse(array $responseData, string $requestUuid): void
     {
-        // Zpracuj odpověď z n8n
+        // Process response from n8n
     }
     
     public function getHandlerId(): string
@@ -147,15 +147,15 @@ $uuid = $n8nClient->sendWithCallback($payload, 'workflow-id', new MyResponseHand
 ```
 
 ### Sync
-Čeká na okamžitou odpověď (pokud n8n webhook podporuje).
+Waits for immediate response (if n8n webhook supports it).
 
 ```php
 $result = $n8nClient->sendSync($payload, 'workflow-id', 30); // 30s timeout
 ```
 
-## HTTP metody a content typy
+## HTTP Methods and Content Types
 
-Bundle podporuje různé HTTP metody a content typy:
+Bundle supports various HTTP methods and content types:
 
 ```php
 use Freema\N8nBundle\Enum\RequestMethod;
@@ -166,19 +166,19 @@ class MyPayload implements N8nPayloadInterface
     {
         return RequestMethod::POST_FORM;  // Form data (application/x-www-form-urlencoded)
         // return RequestMethod::POST_JSON;  // JSON body (application/json)
-        // return RequestMethod::GET;        // GET parametry
-        // return RequestMethod::PUT_JSON;   // PUT s JSON
-        // return RequestMethod::PATCH_FORM; // PATCH s form data
+        // return RequestMethod::GET;        // GET parameters
+        // return RequestMethod::PUT_JSON;   // PUT with JSON
+        // return RequestMethod::PATCH_FORM; // PATCH with form data
     }
 }
 ```
 
-## Response mapování na entity
+## Response Entity Mapping
 
-Můžeš automaticky mapovat n8n response na PHP objekty:
+You can automatically map n8n responses to PHP objects:
 
 ```php
-// 1. Vytvoř response entitu
+// 1. Create response entity
 class ModerationResponse
 {
     public function __construct(
@@ -188,7 +188,7 @@ class ModerationResponse
     ) {}
 }
 
-// 2. Specifikuj třídu v payload
+// 2. Specify class in payload
 class ForumPost implements N8nPayloadInterface
 {
     public function getN8nResponseClass(): ?string
@@ -197,34 +197,33 @@ class ForumPost implements N8nPayloadInterface
     }
 }
 
-// 3. Použij namapovaný objekt
+// 3. Use mapped object
 $result = $n8nClient->send($post, 'workflow-id');
-$mappedResponse = $result['mapped_response']; // Instance ModerationResponse
-$isAllowed = $mappedResponse->allowed; // Type-safe přístup
+$mappedResponse = $result['mapped_response']; // Instance of ModerationResponse
+$isAllowed = $mappedResponse->allowed; // Type-safe access
 ```
 
-## Debug panel
+## Debug Panel
 
-Bundle obsahuje debug panel pro Symfony Web Profiler:
+Bundle includes debug panel for Symfony Web Profiler:
 
 ```yaml
 # config/packages/n8n.yaml
 n8n:
   debug:
-    enabled: true  # nebo null pro auto-detekci podle kernel.debug
-    collect_requests: true
+    enabled: true  # or null for auto-detection based on kernel.debug
     log_requests: true
 ```
 
-Panel zobrazuje:
-- Všechny N8n requesty s UUID, duration, status
-- Payload data a response data  
-- Chyby a jejich detaily
-- Celkový počet requestů a čas
+Panel shows:
+- All N8n requests with UUID, duration, status
+- Payload data and response data  
+- Errors and their details
+- Total request count and time
 
-## Monitoring a eventy
+## Monitoring and Events
 
-Bundle emituje eventy pro každou fázi komunikace:
+Bundle emits events for each phase of communication:
 
 ```php
 // Event listener
@@ -247,83 +246,77 @@ class N8nMonitoringListener implements EventSubscriberInterface
 }
 ```
 
-## Testovací aplikace
+## Test Application
 
-V adresáři `dev/` je připravena testovací aplikace s Docker podporou:
+The `dev/` directory contains a test application with Docker support:
 
 ### Setup
 
-1. Spuštění Docker kontejneru:
+1. Start Docker container:
 ```bash
 task up
 ```
 
-2. Instalace závislostí:
+2. Install dependencies:
 ```bash
 task init
 ```
 
-3. Konfigurace prostředí:
+3. Environment configuration:
 ```bash
-# Zkopírujte vzorový soubor
+# Copy example file
 cp dev/.env.example dev/.env.local
 
-# Upravte dev/.env.local a vyplňte:
-# - N8N_WEBHOOK_FIRE_AND_FORGET - váš webhook ID
-# - N8N_WEBHOOK_WITH_CALLBACK - váš webhook ID pro callback
-# - N8N_CALLBACK_BASE_URL - URL kde běží vaše aplikace (pro callback)
+# Edit dev/.env.local and fill in:
+# - N8N_WEBHOOK_FIRE_AND_FORGET - your webhook ID
+# - N8N_WEBHOOK_WITH_CALLBACK - your webhook ID for callback
+# - N8N_CALLBACK_BASE_URL - URL where your application runs (for callback)
 ```
 
-4. Spuštění vývojového serveru:
+4. Start development server:
 ```bash
-task dev:serve
+task serve
 ```
 
-Aplikace bude dostupná na http://localhost:8080
+Application will be available at http://localhost:8080
 
-### Dostupné Taskfile příkazy:
+### Available Taskfile Commands:
 
 ```bash
-# Správa prostředí
-task init          # Inicializace vývojového prostředí
-task up            # Spuštění Docker kontejnerů
-task down          # Zastavení Docker kontejnerů
-task restart       # Restart prostředí
-task logs          # Zobrazení logů
+# Environment management
+task init          # Initialize development environment
+task up            # Start Docker containers
+task down          # Stop Docker containers
+task restart       # Restart environment
+task logs          # Show logs
 
 # Development
-task dev:serve     # Spuštění dev serveru
-task dev:shell     # Shell do dev kontejneru
-task php:shell     # Shell do PHP kontejneru
-task demo          # Zobrazení demo endpointů
+task serve         # Start dev server
+task shell         # Shell into dev container
 
-# N8n testování
-task n8n:ff        # Test Fire & Forget
-task n8n:cb        # Test Callback
-task n8n:health    # Health check
-task n8n:clean     # Cleanup příkaz
+# N8n testing
+task test:health   # Health check
 
-# Testování
-task test          # Spuštění PHPUnit testů
-task test:all      # Test všech Symfony verzí
-task stan          # PHPStan analýza
-task cs:fix        # Oprava code style
+# Testing
+task test          # Run PHPUnit tests
+task stan          # PHPStan analysis
+task cs:fix        # Fix code style
 ```
 
-### Endpointy:
+### Endpoints:
 - `POST /demo/fire-and-forget` - Fire & Forget test
 - `POST /demo/with-callback` - Async callback test
-- `POST /demo/sync` - Synchronní test
+- `POST /demo/sync` - Synchronous test
 - `GET /demo/health` - Health check
 - `POST /api/n8n/callback` - Callback endpoint
 - `GET /_profiler` - Symfony Web Profiler
 
-## Příklad použití
+## Example Usage
 
-### Kontrola příspěvků v diskuzích
+### Forum Post Moderation
 
 ```php
-// 1. Příspěvek implementuje N8nPayloadInterface
+// 1. Post implements N8nPayloadInterface
 class ForumPost implements N8nPayloadInterface
 {
     public function toN8nPayload(): array
@@ -336,7 +329,7 @@ class ForumPost implements N8nPayloadInterface
     }
 }
 
-// 2. Handler pro zpracování výsledku
+// 2. Handler for processing results
 class ForumPostModerationHandler implements N8nResponseHandlerInterface
 {
     public function handleN8nResponse(array $responseData, string $requestUuid): void
@@ -345,7 +338,7 @@ class ForumPostModerationHandler implements N8nResponseHandlerInterface
         $spamScore = $responseData['spam_score'];
         $flags = $responseData['flags'];
         
-        // Podle výsledku publikuj/blokuj/pošli k manuální kontrole
+        // Based on result: publish/block/send for manual review
         match($responseData['suggested_action']) {
             'approve' => $this->approvePost($postId),
             'manual_review' => $this->queueForManualReview($postId, $flags),
@@ -354,16 +347,16 @@ class ForumPostModerationHandler implements N8nResponseHandlerInterface
     }
 }
 
-// 3. Použití
+// 3. Usage
 $post = new ForumPost(/*...*/);
 $handler = new ForumPostModerationHandler();
 
 $uuid = $n8nClient->sendWithCallback($post, 'moderation-workflow-id', $handler);
 ```
 
-## Konfigurace
+## Configuration
 
-### Kompletní konfigurace
+### Complete Configuration
 
 ```yaml
 n8n:
@@ -396,6 +389,6 @@ n8n:
     max_request_age_seconds: 86400
 ```
 
-## Licencia
+## License
 
 MIT

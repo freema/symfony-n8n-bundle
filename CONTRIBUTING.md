@@ -1,83 +1,83 @@
-# Přispívání do Symfony N8n Bundle
+# Contributing to Symfony N8n Bundle
 
-Děkujeme za váš zájem o přispívání do tohoto projektu! 🎉
+Thank you for your interest in contributing to this project! 🎉
 
-## Jak začít
+## Getting Started
 
-### 1. Vývojové prostředí
+### 1. Development Environment
 
 ```bash
-# Klonování repozitáře
+# Clone repository
 git clone https://github.com/freema/n8n-bundle.git
 cd n8n-bundle
 
-# Instalace Task (https://taskfile.dev)
+# Install Task (https://taskfile.dev)
 brew install go-task/tap/go-task
 
-# Inicializace vývojového prostředí
+# Initialize development environment
 task init
 
-# Spuštění testů
+# Run tests
 task test
 ```
 
-### 2. Struktura projektu
+### 2. Project Structure
 
 ```
 src/
 ├── Contract/           # PHP interfaces
-├── Domain/            # Domain objekty
-├── Service/           # Core služby
-├── Http/              # HTTP komunikace
-├── Controller/        # Symfony kontrolery
-├── EventListener/     # Event listenery
-├── Event/             # Event objekty
+├── Domain/            # Domain objects
+├── Service/           # Core services
+├── Http/              # HTTP communication
+├── Controller/        # Symfony controllers
+├── EventListener/     # Event listeners
+├── Event/             # Event objects
 ├── Exception/         # Custom exceptions
-├── Command/           # Symfony příkazy
+├── Command/           # Symfony commands
 ├── Enum/              # Enumerations (RequestMethod, CommunicationMode)
-├── Debug/             # Debug panel pro Web Profiler
-├── DependencyInjection/  # DI konfigurace
-└── Resources/         # Konfigurace a templates
+├── Debug/             # Debug panel for Web Profiler
+├── DependencyInjection/  # DI configuration
+└── Resources/         # Configuration and templates
 
-dev/                   # Testovací aplikace
-├── Controller/        # Demo kontrolery
-├── Entity/           # Příklady payload a response entit
-└── Service/          # Příklady response handlerů
-tests/                 # Unit a integration testy
+dev/                   # Test application
+├── Controller/        # Demo controllers
+├── Entity/           # Example payload and response entities
+└── Service/          # Example response handlers
+tests/                 # Unit and integration tests
 ```
 
-## Typy příspěvků
+## Types of Contributions
 
-### 🐛 Bug reporty
-- Použijte GitHub Issues
-- Uveďte kroky k reprodukci
-- Přiložte error logy
-- Specifikujte verzi PHP a Symfony
+### 🐛 Bug Reports
+- Use GitHub Issues
+- Include steps to reproduce
+- Attach error logs
+- Specify PHP and Symfony versions
 
-### 💡 Návrhy na vylepšení
-- Otevřete Discussion nebo Issue
-- Popište use case
-- Navrhněte API design
-- Zvažte backward compatibility
+### 💡 Feature Suggestions
+- Open Discussion or Issue
+- Describe use case
+- Propose API design
+- Consider backward compatibility
 
-### 🔧 Pull requesty
-- Forkněte repozitář
-- Vytvořte feature branch
-- Implementujte změny
-- Napište testy
-- Aktualizujte dokumentaci
+### 🔧 Pull Requests
+- Fork repository
+- Create feature branch
+- Implement changes
+- Write tests
+- Update documentation
 
 ## Coding Standards
 
 ### PHP Standards
 - PSR-12 code style
-- PHP 8.1+ type hints
+- PHP 8.2+ type hints
 - Strict types: `declare(strict_types=1)`
-- Readonly properties kde je to možné
+- Readonly properties where possible
 
 ### Symfony Conventions
 - Symfony best practices
-- Service configuration přes YAML
+- Service configuration via YAML
 - Event-driven architecture
 - Proper DI container usage
 
@@ -87,32 +87,30 @@ tests/                 # Unit a integration testy
 - Services: `N8nClient`, `RequestTracker`
 - Events: `N8nRequestSentEvent`
 
-## Testování
+## Testing
 
-### Spuštění testů
+### Running Tests
 ```bash
-# Všechny testy
+# All tests
 task test
 
-# Specifické Symfony verze
-task test:symfony64
-task test:symfony70
-task test:all
+# Unit tests only
+task test:unit
 
 # Code quality
 task stan           # PHPStan
 task cs:fix         # PHP-CS-Fixer
 ```
 
-### Testovací pokrytí
-- Unit testy pro všechny služby
-- Integration testy pro Symfony kompatibilitu
-- Mock objekty pro HTTP komunikaci
-- Testovací scénáře pro všechny komunikační módy
+### Test Coverage
+- Unit tests for all services
+- Integration tests for Symfony compatibility
+- Mock objects for HTTP communication
+- Test scenarios for all communication modes
 
-### Testovací data
+### Test Data
 ```php
-// Použijte factory pattern pro test data
+// Use factory pattern for test data
 class N8nTestDataFactory
 {
     public static function createForumPost(): ForumPost
@@ -128,30 +126,30 @@ class N8nTestDataFactory
 }
 ```
 
-## Dokumentace
+## Documentation
 
-### Aktualizace dokumentace
-- README.md pro hlavní funkce
-- VERSIONS.md pro changelog
-- PHPDoc pro všechny public metody
-- Příklady použití v `/dev` aplikaci
+### Updating Documentation
+- README.md for main features
+- VERSIONS.md for changelog
+- PHPDoc for all public methods
+- Usage examples in `/dev` application
 
 ### Changelog
-- Používejte [Keep a Changelog](https://keepachangelog.com/)
-- Kategorie: Added, Changed, Deprecated, Removed, Fixed, Security
-- Linkujte na GitHub Issues/PRs
+- Use [Keep a Changelog](https://keepachangelog.com/)
+- Categories: Added, Changed, Deprecated, Removed, Fixed, Security
+- Link to GitHub Issues/PRs
 
 ## Pull Request Process
 
-### 1. Příprava
+### 1. Preparation
 ```bash
-# Vytvořte feature branch
+# Create feature branch
 git checkout -b feature/amazing-feature
 
-# Implementujte změny
+# Implement changes
 # ...
 
-# Spusťte testy
+# Run tests
 task test
 task stan
 task cs:fix
@@ -169,60 +167,60 @@ Fixes #123
 ```
 
 ### 3. PR Checklist
-- [ ] Testy projdou
-- [ ] Dokumentace je aktualizována
-- [ ] Changelog je doplněn
-- [ ] Backward compatibility je zachována
-- [ ] Code review je proveden
+- [ ] Tests pass
+- [ ] Documentation is updated
+- [ ] Changelog is updated
+- [ ] Backward compatibility is maintained
+- [ ] Code review is performed
 
 ### 4. Review Process
-- Minimálně 1 approve od maintainera
-- Všechny CI checks musí projít
-- Diskuze o implementaci
-- Případné úpravy dle feedback
+- Minimum 1 approval from maintainer
+- All CI checks must pass
+- Discussion about implementation
+- Possible adjustments based on feedback
 
-## Architektura a Design
+## Architecture and Design
 
-### Principy
-- **Type Safety**: Všechny parametry typovány
-- **Separation of Concerns**: Každá třída má jednu odpovědnost
-- **Dependency Injection**: Vše přes DI container
-- **Event-Driven**: Komunikace přes eventy
-- **Testability**: Všechny závislosti mockable
+### Principles
+- **Type Safety**: All parameters typed
+- **Separation of Concerns**: Each class has one responsibility
+- **Dependency Injection**: Everything through DI container
+- **Event-Driven**: Communication through events
+- **Testability**: All dependencies mockable
 
-### Návrhové vzory
-- Repository pattern pro data storage
-- Factory pattern pro vytváření objektů
-- Strategy pattern pro různé komunikační módy
-- Observer pattern pro monitoring
-- Circuit breaker pro error handling
+### Design Patterns
+- Repository pattern for data storage
+- Factory pattern for object creation
+- Strategy pattern for different communication modes
+- Observer pattern for monitoring
+- Circuit breaker for error handling
 
-### Rozšiřitelnost
+### Extensibility
 ```php
-// Nové payload typy s všemi možnostmi
+// New payload types with all capabilities
 interface N8nPayloadInterface extends N8nResponseMappableInterface
 {
     public function toN8nPayload(): array;
     public function getN8nContext(): array;
     
-    // Volitelné: HTTP metoda a content type
+    // Optional: HTTP method and content type
     public function getN8nRequestMethod(): RequestMethod;
     
-    // Volitelné: vlastní response handler
+    // Optional: custom response handler
     public function getN8nResponseHandler(): ?N8nResponseHandlerInterface;
     
-    // Volitelné: response entity mapping
+    // Optional: response entity mapping
     public function getN8nResponseClass(): ?string;
 }
 
-// Nové response handlery
+// New response handlers
 interface N8nResponseHandlerInterface
 {
     public function handleN8nResponse(array $responseData, string $requestUuid): void;
     public function getHandlerId(): string;
 }
 
-// Response entity pro type-safe práci s daty
+// Response entity for type-safe data handling
 class CustomResponse
 {
     public function __construct(
@@ -235,95 +233,92 @@ class CustomResponse
 
 ## Debugging
 
-### Vývojové nástroje
+### Development Tools
 ```bash
-# Symfony Web Profiler s N8n debug panelem
+# Symfony Web Profiler with N8n debug panel
 task up
-task dev:serve
+task serve
 # http://localhost:8080/_profiler
 
-# N8n komunikace debugging
-task n8n:ff        # Test fire & forget
-task n8n:cb        # Test callback
-task n8n:health    # Health check
+# N8n communication debugging
+task test:health    # Health check
 
 # Code quality
-task stan          # PHPStan analýza
+task stan          # PHPStan analysis
 task cs            # Check code style
 task cs:fix        # Fix code style
 ```
 
-### Debug panel
-Bundle obsahuje vlastní panel v Symfony Web Profiler který zobrazuje:
-- Všechny N8n requesty s UUID, duration a statusem
+### Debug Panel
+Bundle includes custom panel in Symfony Web Profiler that shows:
+- All N8n requests with UUID, duration and status
 - Request/response payload data
-- Mapped response objekty
-- Chyby a jejich stack traces
-- Performance metriky
+- Mapped response objects
+- Errors and their stack traces
+- Performance metrics
 
-Pro povolení debug panelu:
+To enable debug panel:
 ```yaml
 # config/packages/n8n.yaml
 n8n:
   debug:
-    enabled: true  # nebo null pro auto-detekci
-    collect_requests: true
+    enabled: true  # or null for auto-detection
     log_requests: true
 ```
 
 ### Logging
-- Všechny N8n operace jsou logovány
-- Používejte strukturované logování
-- Různé log levels podle závažnosti
-- Separátní log file pro N8n operace
+- All N8n operations are logged
+- Use structured logging
+- Different log levels by severity
+- Separate log file for N8n operations
 
-## Bezpečnost
+## Security
 
 ### Reporting
-- Bezpečnostní chyby hlašte přímo maintainerům
-- Neveřejné diskuze o security issues
-- Zodpovědné disclosure
+- Report security issues directly to maintainers
+- Private discussion of security issues
+- Responsible disclosure
 
 ### Best Practices
-- Validace všech vstupů
-- Sanitizace výstupů
+- Validate all inputs
+- Sanitize outputs
 - Secure defaults
-- Žádné secrets v kódu
+- No secrets in code
 
-## Komunita
+## Community
 
-### Komunikace
-- GitHub Issues pro bug reporty
-- GitHub Discussions pro návrhy
+### Communication
+- GitHub Issues for bug reports
+- GitHub Discussions for suggestions
 - Pull Request reviews
 - Slack/Discord TBD
 
 ### Code of Conduct
-- Buďte respektující k ostatním
-- Konstruktivní feedback
-- Inkluze všech přispěvatelů
-- Profesionální komunikace
+- Be respectful to others
+- Constructive feedback
+- Inclusion of all contributors
+- Professional communication
 
-## Vydávání verzí
+## Release Process
 
 ### Semantic Versioning
 - MAJOR: Breaking changes
-- MINOR: Nové funkce (backward compatible)
+- MINOR: New features (backward compatible)
 - PATCH: Bug fixes
 
 ### Release Process
-1. Aktualizace VERSIONS.md
-2. Testing na všech podporovaných verzích
+1. Update VERSIONS.md
+2. Testing on all supported versions
 3. Documentation review
-4. Git tag vytvoření
-5. Packagist publikace
+4. Git tag creation
+5. Packagist publication
 
-## Otázky?
+## Questions?
 
-- Otevřete GitHub Issue s labelem `question`
-- Checkněte existující Issues a Discussions
-- Kontaktujte maintainery přímo pro urgentní věci
+- Open GitHub Issue with `question` label
+- Check existing Issues and Discussions
+- Contact maintainers directly for urgent matters
 
 ---
 
-**Díky za váš příspěvek! 🚀**
+**Thanks for your contribution! 🚀**
