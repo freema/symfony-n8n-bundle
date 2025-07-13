@@ -16,8 +16,9 @@ class N8nRequestRetryEvent extends Event
         private readonly \Throwable $exception,
         private readonly int $attempt,
         private readonly int $maxAttempts,
-        private readonly int $delayMs = 1000
-    ) {}
+        private readonly int $delayMs = 1000,
+    ) {
+    }
 
     public function getRequest(): N8nRequest
     {
