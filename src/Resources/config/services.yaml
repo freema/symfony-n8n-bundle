@@ -1,0 +1,50 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  # Core services
+  n8n.uuid_generator:
+    class: Freema\N8nBundle\Service\UuidGenerator
+    public: false
+
+  n8n.request_tracker:
+    class: Freema\N8nBundle\Service\RequestTracker
+    public: false
+
+  n8n.response_mapper:
+    class: Freema\N8nBundle\Service\ResponseMapper
+    public: false
+
+  n8n.callback_handler:
+    class: Freema\N8nBundle\Service\CallbackHandler
+    arguments:
+      - '@n8n.request_tracker'
+      - '@event_dispatcher'
+      - '@logger'
+    public: false
+
+  # Controllers
+  Freema\N8nBundle\Controller\N8nCallbackController:
+    arguments:
+      - '@n8n.callback_handler'
+      - '@logger'
+    tags:
+      - { name: 'controller.service_arguments' }
+
+  # Event listeners
+  n8n.logging_listener:
+    class: Freema\N8nBundle\EventListener\N8nLoggingListener
+    arguments:
+      - '@logger'
+    tags:
+      - { name: 'kernel.event_subscriber' }
+
+  # Cleanup command
+  n8n.cleanup_command:
+    class: Freema\N8nBundle\Command\CleanupCommand
+    arguments:
+      - '@n8n.request_tracker'
+      - '%n8n.tracking.max_request_age_seconds%'
+    tags:
+      - { name: 'console.command' }

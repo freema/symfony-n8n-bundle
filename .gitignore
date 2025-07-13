@@ -30,6 +30,7 @@
 !bin/console
 !bin/symfony_requirements
 /vendor/
+composer.lock
 
 # Assets and user uploads
 /web/bundles/
@@ -50,3 +51,28 @@
 
 # Embedded web-server pid file
 /.web-server-pid
+
+# development environment
+/old
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+dev/.env
+
+# Dev application cache and logs
+/dev/cache/
+/dev/log/
+
+# Code quality tools
+.php-cs-fixer.cache
+.phpstan/
+
+# IDE
+.idea/
+
+# Test results
+/var/coverage/
+coverage.xml
+.phpunit.cache/

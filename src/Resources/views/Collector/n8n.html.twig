@@ -1,0 +1,164 @@
+{% extends '@WebProfiler/Profiler/layout.html.twig' %}
+
+{% block head %}
+    {{ parent() }}
+    <style>
+        .sf-toolbar-block-n8n .sf-toolbar-icon svg { width: 16px; height: 16px; }
+        .n8n-table { width: 100%; margin: 10px 0; }
+        .n8n-table th, .n8n-table td { padding: 8px; border: 1px solid #ddd; }
+        .n8n-table th { background: #f5f5f5; font-weight: bold; }
+        .n8n-error { color: #e74c3c; }
+        .n8n-success { color: #27ae60; }
+        .n8n-duration { font-family: monospace; }
+        .n8n-payload { max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+    </style>
+{% endblock %}
+
+{% block toolbar %}
+    {% set icon %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 3v6h8l-8 12v-6H5l8-12z"/>
+        </svg>
+        <span class="sf-toolbar-value">{{ collector.totalRequests }}</span>
+        {% if collector.totalErrors > 0 %}
+            <span class="sf-toolbar-info-piece-additional-detail">
+                <span class="sf-toolbar-label">errors</span>
+                <span class="sf-toolbar-value">{{ collector.totalErrors }}</span>
+            </span>
+        {% endif %}
+    {% endset %}
+
+    {% set text %}
+        <div class="sf-toolbar-info-piece">
+            <b>N8n Requests</b>
+            <span class="sf-toolbar-status">{{ collector.totalRequests }}</span>
+        </div>
+        {% if collector.totalErrors > 0 %}
+            <div class="sf-toolbar-info-piece">
+                <b>Errors</b>
+                <span class="sf-toolbar-status sf-toolbar-status-red">{{ collector.totalErrors }}</span>
+            </div>
+        {% endif %}
+        <div class="sf-toolbar-info-piece">
+            <b>Total Time</b>
+            <span>{{ '%.2f'|format(collector.totalTime * 1000) }} ms</span>
+        </div>
+    {% endset %}
+
+    {{ include('@WebProfiler/Profiler/toolbar_item.html.twig', { 
+        'link': profiler_url,
+        'status': collector.totalErrors > 0 ? 'red' : (collector.totalRequests > 0 ? 'green' : '')
+    }) }}
+{% endblock %}
+
+{% block menu %}
+    <span class="label {{ collector.totalErrors > 0 ? 'label-status-error' : '' }}">
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                <path d="M13 3v6h8l-8 12v-6H5l8-12z"/>
+            </svg>
+        </span>
+        <strong>N8n</strong>
+        {% if collector.totalRequests > 0 %}
+            <span class="count">
+                <span>{{ collector.totalRequests }}</span>
+            </span>
+        {% endif %}
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>N8n Workflow Requests</h2>
+
+    <div class="metrics">
+        <div class="metric">
+            <span class="value">{{ collector.totalRequests }}</span>
+            <span class="label">Total Requests</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ collector.totalErrors }}</span>
+            <span class="label">Errors</span>
+        </div>
+        <div class="metric">
+            <span class="value">{{ '%.2f'|format(collector.totalTime * 1000) }} ms</span>
+            <span class="label">Total Time</span>
+        </div>
+    </div>
+
+    {% if collector.requests|length > 0 %}
+        <h3>Request Details</h3>
+        <table class="n8n-table">
+            <thead>
+                <tr>
+                    <th>UUID</th>
+                    <th>Method</th>
+                    <th>URL</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Payload</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in collector.requests %}
+                    {% set uuid = request.uuid %}
+                    {% set response = collector.responses[uuid] ?? null %}
+                    {% set error = collector.errors[uuid] ?? null %}
+                    <tr>
+                        <td><code>{{ uuid ?? 'N/A' }}</code></td>
+                        <td><strong>{{ request.method }}</strong></td>
+                        <td>{{ request.url }}</td>
+                        <td class="n8n-duration">{{ '%.2f'|format(request.duration * 1000) }} ms</td>
+                        <td>
+                            {% if error %}
+                                <span class="n8n-error">ERROR</span>
+                            {% elseif response %}
+                                <span class="n8n-success">{{ response.status_code }}</span>
+                            {% else %}
+                                <span>PENDING</span>
+                            {% endif %}
+                        </td>
+                        <td class="n8n-payload">
+                            {% if request.payload %}
+                                {{ profiler_dump(request.payload, maxDepth=2) }}
+                            {% else %}
+                                <em>No payload</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    {% if collector.errors|length > 0 %}
+        <h3>Errors</h3>
+        {% for uuid, error in collector.errors %}
+            <div class="exception">
+                <h4>Request {{ uuid }}</h4>
+                <p class="n8n-error">{{ error.error }}</p>
+                {% if error.exception %}
+                    {{ profiler_dump(error.exception) }}
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if collector.responses|length > 0 %}
+        <h3>Responses</h3>
+        {% for uuid, response in collector.responses %}
+            <div class="response-detail">
+                <h4>Response for {{ uuid }}</h4>
+                <p><strong>Status:</strong> {{ response.status_code }}</p>
+                <div class="response-body">
+                    {{ profiler_dump(response.response, maxDepth=3) }}
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if collector.totalRequests == 0 %}
+        <div class="empty">
+            <p>No N8n requests were made during this request.</p>
+        </div>
+    {% endif %}
+{% endblock %}
