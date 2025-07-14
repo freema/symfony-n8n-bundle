@@ -48,3 +48,6 @@ services:
       - '%n8n.tracking.max_request_age_seconds%'
     tags:
       - { name: 'console.command' }
+
+  # Interface aliases
+  Freema\N8nBundle\Contract\N8nClientInterface: '@n8n.client'

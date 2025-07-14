@@ -46,6 +46,7 @@ final class N8nExtension extends Extension
                 $clientConfig['circuit_breaker_timeout_seconds'],
                 $clientConfig['dry_run'],
                 $clientConfig['default_headers'],
+                $clientConfig['proxy'],
             ]);
             $container->setDefinition($configId, $configDefinition);
 

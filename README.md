@@ -49,6 +49,7 @@ n8n:
       timeout_seconds: 30
       retry_attempts: 3
       enable_circuit_breaker: true
+      proxy: '%env(HTTP_PROXY)%'  # Optional: HTTP proxy URL
 ```
 
 ### 4. Entity Implementation
@@ -372,6 +373,7 @@ n8n:
       circuit_breaker_threshold: 5
       circuit_breaker_timeout_seconds: 60
       dry_run: false
+      proxy: 'http://proxy.example.com:3128'  # Optional HTTP proxy
       default_headers:
         X-Custom-Header: 'My App'
     

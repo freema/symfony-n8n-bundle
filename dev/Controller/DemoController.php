@@ -38,9 +38,9 @@ final class DemoController extends AbstractController
 
         return new JsonResponse([
             'status' => 'sent',
-            'uuid' => $result['uuid'],
+            'uuid' => $result->getUuid(),
             'mode' => 'fire_and_forget',
-            'n8n_response' => $result['response'],
+            'n8n_response' => $result->getResponse(),
         ]);
     }
 

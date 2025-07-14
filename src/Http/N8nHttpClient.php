@@ -20,13 +20,19 @@ final class N8nHttpClient
         private readonly N8nConfig $config,
         ?HttpClientInterface $httpClient = null,
     ) {
-        $this->httpClient = $httpClient ?? HttpClient::create([
+        $httpClientOptions = [
             'timeout' => $this->config->timeoutSeconds,
             'headers' => array_merge([
                 'Content-Type' => 'application/json',
                 'User-Agent' => 'Symfony N8n Bundle/1.0',
             ], $this->config->defaultHeaders),
-        ]);
+        ];
+
+        if ($this->config->proxy !== null) {
+            $httpClientOptions['proxy'] = $this->config->proxy;
+        }
+
+        $this->httpClient = $httpClient ?? HttpClient::create($httpClientOptions);
     }
 
     public function sendWebhook(N8nRequest $request): ResponseInterface
@@ -71,9 +77,12 @@ final class N8nHttpClient
         }
 
         try {
-            $response = $this->httpClient->request('GET', $this->config->baseUrl.'/health', [
-                'timeout' => 5,
-            ]);
+            $options = ['timeout' => 5];
+            if ($this->config->proxy !== null) {
+                $options['proxy'] = $this->config->proxy;
+            }
+
+            $response = $this->httpClient->request('GET', $this->config->baseUrl.'/health', $options);
 
             return $response->getStatusCode() < 400;
         } catch (\Throwable) {

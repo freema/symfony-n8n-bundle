@@ -18,6 +18,7 @@ final readonly class N8nConfig
         public int $circuitBreakerTimeoutSeconds = 60,
         public bool $dryRun = false,
         public array $defaultHeaders = [],
+        public ?string $proxy = null,
     ) {
     }
 
