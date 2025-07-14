@@ -9,6 +9,7 @@ use Freema\N8nBundle\Contract\N8nPayloadInterface;
 use Freema\N8nBundle\Contract\N8nResponseHandlerInterface;
 use Freema\N8nBundle\Domain\N8nConfig;
 use Freema\N8nBundle\Domain\N8nRequest;
+use Freema\N8nBundle\Dto\N8nResponse;
 use Freema\N8nBundle\Enum\CommunicationMode;
 use Freema\N8nBundle\Exception\N8nCommunicationException;
 use Freema\N8nBundle\Http\N8nHttpClient;
@@ -28,7 +29,7 @@ final class N8nClient implements N8nClientInterface
     ) {
     }
 
-    public function send(N8nPayloadInterface $payload, string $workflowId, CommunicationMode $mode = CommunicationMode::FIRE_AND_FORGET): array
+    public function send(N8nPayloadInterface $payload, string $workflowId, CommunicationMode $mode = CommunicationMode::FIRE_AND_FORGET): N8nResponse
     {
         $request = new N8nRequest(
             uuid: $this->uuidGenerator->generate(),
@@ -92,12 +93,12 @@ final class N8nClient implements N8nClientInterface
                 }
             }
 
-            return [
-                'uuid' => $request->uuid,
-                'response' => $responseData,
-                'mapped_response' => $mappedResponse,
-                'status_code' => $statusCode,
-            ];
+            return new N8nResponse(
+                uuid: $request->uuid,
+                response: $responseData,
+                mappedResponse: $mappedResponse,
+                statusCode: $statusCode,
+            );
         } catch (\Throwable $e) {
             $this->requestTracker->completeRequest($request->uuid);
             throw $e;
@@ -139,7 +140,7 @@ final class N8nClient implements N8nClientInterface
         }
     }
 
-    public function sendSync(N8nPayloadInterface $payload, string $workflowId, int $timeoutSeconds = 30): array
+    public function sendSync(N8nPayloadInterface $payload, string $workflowId, int $timeoutSeconds = 30): N8nResponse
     {
         $request = new N8nRequest(
             uuid: $this->uuidGenerator->generate(),
@@ -160,7 +161,14 @@ final class N8nClient implements N8nClientInterface
             );
         }
 
-        return $response->toArray();
+        $responseData = $response->toArray();
+
+        return new N8nResponse(
+            uuid: $request->uuid,
+            response: $responseData,
+            mappedResponse: null,
+            statusCode: $response->getStatusCode(),
+        );
     }
 
     public function getClientId(): string

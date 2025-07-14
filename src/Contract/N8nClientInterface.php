@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Freema\N8nBundle\Contract;
 
+use Freema\N8nBundle\Dto\N8nResponse;
 use Freema\N8nBundle\Enum\CommunicationMode;
 
 /**
@@ -22,9 +23,9 @@ interface N8nClientInterface
      * @param N8nPayloadInterface $payload The data to send to n8n
      * @param string $workflowId The n8n workflow/webhook identifier
      * @param CommunicationMode $mode The communication mode to use
-     * @return array Response data containing uuid, response, mapped_response, and status_code
+     * @return N8nResponse Response object containing uuid, response, mapped_response, and status_code
      */
-    public function send(N8nPayloadInterface $payload, string $workflowId, CommunicationMode $mode = CommunicationMode::FIRE_AND_FORGET): array;
+    public function send(N8nPayloadInterface $payload, string $workflowId, CommunicationMode $mode = CommunicationMode::FIRE_AND_FORGET): N8nResponse;
 
     /**
      * Send payload to n8n workflow with callback handler for async processing
@@ -42,9 +43,9 @@ interface N8nClientInterface
      * @param N8nPayloadInterface $payload The data to send to n8n
      * @param string $workflowId The n8n workflow/webhook identifier
      * @param int $timeoutSeconds Maximum time to wait for response
-     * @return array The response data from n8n
+     * @return N8nResponse The response object from n8n
      */
-    public function sendSync(N8nPayloadInterface $payload, string $workflowId, int $timeoutSeconds = 30): array;
+    public function sendSync(N8nPayloadInterface $payload, string $workflowId, int $timeoutSeconds = 30): N8nResponse;
 
     /**
      * Get the client identifier for this n8n client instance
