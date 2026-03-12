@@ -69,15 +69,13 @@ final class N8nHttpClient
             return $this->httpClient->request($httpMethod, $url, $options);
         } catch (\Throwable $e) {
             if (str_contains($e->getMessage(), 'timeout')) {
-                // @phpstan-ignore-next-line
-                throw new N8nTimeoutException('N8n webhook request timeout', 0, $e instanceof \Exception ? $e : null);
+                throw new N8nTimeoutException('N8n webhook request timeout', 0, $e);
             }
 
             throw new N8nCommunicationException(
                 'Failed to send webhook to N8n: '.$e->getMessage(),
                 0,
-                // @phpstan-ignore-next-line
-                $e instanceof \Exception ? $e : null,
+                $e,
             );
         }
     }
