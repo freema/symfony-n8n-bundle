@@ -19,11 +19,17 @@ final readonly class N8nConfig
         public bool $dryRun = false,
         public array $defaultHeaders = [],
         public ?string $proxy = null,
+        public bool $useTestWebhook = false,
     ) {
     }
 
     public function getWebhookUrl(string $workflowId): string
     {
-        return rtrim($this->baseUrl, '/').'/webhook/'.$workflowId;
+        return \sprintf(
+            '%1$s/%2$s/%3$s',
+            $this->baseUrl,
+            $this->useTestWebhook ? 'webhook-test' : 'webhook',
+            $workflowId,
+        );
     }
 }
