@@ -60,6 +60,7 @@ n8n:
       retry_attempts: 3
       enable_circuit_breaker: true
       proxy: '%env(HTTP_PROXY)%'  # Optional: HTTP proxy URL
+      use_test_webhook: false  # Optional: use /webhook-test/ for unpublished workflows (default: false)
 ```
 
 ### 4. Entity Implementation

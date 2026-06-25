@@ -26,6 +26,7 @@ final class N8nClient implements N8nClientInterface
         private readonly ResponseMapper $responseMapper,
         private readonly ?RetryHandler $retryHandler = null,
         private readonly ?CircuitBreaker $circuitBreaker = null,
+        private readonly string $callbackRouteName = 'n8n_callback',
     ) {
     }
 
@@ -46,25 +47,34 @@ final class N8nClient implements N8nClientInterface
         $this->circuitBreaker?->checkAndThrow();
 
         $operation = fn () => $this->httpClient->sendWebhook($request);
-        $response = $this->retryHandler !== null
-            ? $this->retryHandler->executeWithRetry($operation, $request)
-            : $operation();
 
+        // Execute the HTTP call and evaluate the status. Any transport failure
+        // (timeout, connection refused, ...) or error status must be recorded as
+        // a circuit breaker failure, otherwise the breaker never opens on outages.
         try {
+            $response = $this->retryHandler !== null
+                ? $this->retryHandler->executeWithRetry($operation, $request)
+                : $operation();
+
             // @phpstan-ignore-next-line
             $statusCode = $response->getStatusCode();
+
             if ($statusCode >= 400) {
-                $exception = new N8nCommunicationException(
+                throw new N8nCommunicationException(
                     // @phpstan-ignore-next-line
                     'N8n webhook returned error: '.$response->getContent(false),
                     $statusCode,
                 );
-                $this->circuitBreaker?->recordFailure();
-                throw $exception;
             }
+        } catch (\Throwable $e) {
+            $this->circuitBreaker?->recordFailure();
+            $this->requestTracker->completeRequest($request->uuid);
+            throw $e;
+        }
 
-            $this->circuitBreaker?->recordSuccess();
+        $this->circuitBreaker?->recordSuccess();
 
+        try {
             // Parse response data
             // @phpstan-ignore-next-line
             $responseContent = $response->getContent();
@@ -110,7 +120,7 @@ final class N8nClient implements N8nClientInterface
 
     public function sendWithCallback(N8nPayloadInterface $payload, string $workflowId, N8nResponseHandlerInterface $handler): string
     {
-        $callbackUrl = $this->urlGenerator->generate('n8n_callback', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $callbackUrl = $this->urlGenerator->generate($this->callbackRouteName, [], UrlGeneratorInterface::ABSOLUTE_URL);
 
         $request = new N8nRequest(
             uuid: $this->uuidGenerator->generate(),

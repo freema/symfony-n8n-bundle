@@ -94,7 +94,7 @@ final class N8nHttpClient
                 $options['proxy'] = $this->config->proxy;
             }
 
-            $response = $this->httpClient->request('GET', $this->config->baseUrl.'/health', $options);
+            $response = $this->httpClient->request('GET', rtrim($this->config->baseUrl, '/').'/health', $options);
 
             return $response->getStatusCode() < 400;
         } catch (\Throwable) {
