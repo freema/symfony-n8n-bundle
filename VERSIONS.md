@@ -27,10 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Circuit Breaker Missed Transport Failures**: `N8nClient::send()` now records a failure for transport-level errors (timeouts, connection failures), not only HTTP error statuses, so the breaker can actually open on outages
 - **Hardcoded Callback Route**: `sendWithCallback()` now uses the configured `callback.route_name` instead of a hardcoded `n8n_callback`
 - **Double Slash in URLs**: `getWebhookUrl()` and `healthCheck()` now trim trailing slashes from `base_url`
+- **Retries Never Triggered on Network Failures**: the HTTP response is now materialized inside `N8nHttpClient`, so the retry handler actually re-attempts transport errors, timeouts and HTTP 5xx (previously the lazy response made the retry loop succeed on the first attempt)
+- **Untyped Transport Errors**: transport/timeout failures are now wrapped in `N8nCommunicationException` / `N8nTimeoutException` (typed via Symfony's `TransportExceptionInterface` / `TimeoutExceptionInterface`) instead of leaking raw Symfony exceptions; timeout detection no longer relies on string matching
 
 ### Breaking Changes
 - PHP 8.1 is no longer supported
 - Symfony 8.0 requires PHP 8.4+ (Symfony framework requirement)
+- `N8nHttpClient::sendWebhook()` now returns a materialized `Freema\N8nBundle\Dto\N8nHttpResult` instead of a lazy `Symfony\...\ResponseInterface` (internal collaborator; affects code that called `N8nHttpClient` directly)
 
 ## [1.1.0] - 2025-07-14
 

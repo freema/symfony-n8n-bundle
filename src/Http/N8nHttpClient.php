@@ -6,11 +6,14 @@ namespace Freema\N8nBundle\Http;
 
 use Freema\N8nBundle\Domain\N8nConfig;
 use Freema\N8nBundle\Domain\N8nRequest;
+use Freema\N8nBundle\Dto\N8nHttpResult;
+use Freema\N8nBundle\Enum\RequestMethod;
 use Freema\N8nBundle\Exception\N8nCommunicationException;
 use Freema\N8nBundle\Exception\N8nTimeoutException;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\Exception\TimeoutExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class N8nHttpClient
 {
@@ -35,10 +38,12 @@ final class N8nHttpClient
         $this->httpClient = $httpClient ?? HttpClient::create($httpClientOptions);
     }
 
-    public function sendWebhook(N8nRequest $request): ResponseInterface
+    public function sendWebhook(N8nRequest $request): N8nHttpResult
     {
         if ($this->config->dryRun) {
-            return $this->createDryRunResponse($request);
+            $payload = json_encode(['dry_run' => true, 'uuid' => $request->uuid]);
+
+            return new N8nHttpResult(200, $payload !== false ? $payload : '{}');
         }
 
         $url = $this->config->getWebhookUrl($request->workflowId);
@@ -51,7 +56,7 @@ final class N8nHttpClient
         ];
 
         // Set payload based on request method type
-        if ($requestMethod === \Freema\N8nBundle\Enum\RequestMethod::GET) {
+        if ($requestMethod === RequestMethod::GET) {
             $options['query'] = $payload;
         } elseif ($requestMethod->isFormData()) {
             $options['body'] = $payload;
@@ -66,19 +71,19 @@ final class N8nHttpClient
         }
 
         try {
-            return $this->httpClient->request($httpMethod, $url, $options);
-        } catch (\Throwable $e) {
-            if (str_contains($e->getMessage(), 'timeout')) {
-                // @phpstan-ignore-next-line
-                throw new N8nTimeoutException('N8n webhook request timeout', 0, $e instanceof \Exception ? $e : null);
-            }
+            $response = $this->httpClient->request($httpMethod, $url, $options);
 
-            throw new N8nCommunicationException(
-                'Failed to send webhook to N8n: '.$e->getMessage(),
-                0,
-                // @phpstan-ignore-next-line
-                $e instanceof \Exception ? $e : null,
-            );
+            // Materialize the response here so transport-level failures surface as
+            // typed exceptions that the retry handler and circuit breaker can act on.
+            // getStatusCode() triggers the request and throws on transport errors, but
+            // not on 4xx/5xx; getContent(false) reads the body without throwing on those.
+            $statusCode = $response->getStatusCode();
+
+            return new N8nHttpResult($statusCode, $response->getContent(false), $response->getHeaders(false));
+        } catch (TimeoutExceptionInterface $e) {
+            throw new N8nTimeoutException('N8n webhook request timeout', 0, $e);
+        } catch (TransportExceptionInterface $e) {
+            throw new N8nCommunicationException('Failed to send webhook to N8n: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -100,45 +105,5 @@ final class N8nHttpClient
         } catch (\Throwable) {
             return false;
         }
-    }
-
-    private function createDryRunResponse(N8nRequest $request): ResponseInterface
-    {
-        return new class($request) implements ResponseInterface {
-            public function __construct(private N8nRequest $request)
-            {
-            }
-
-            public function getStatusCode(): int
-            {
-                return 200;
-            }
-
-            public function getHeaders(bool $throw = true): array
-            {
-                return [];
-            }
-
-            public function getContent(bool $throw = true): string
-            {
-                $json = json_encode(['dry_run' => true, 'uuid' => $this->request->uuid]);
-
-                return $json !== false ? $json : '{}';
-            }
-
-            public function toArray(bool $throw = true): array
-            {
-                return ['dry_run' => true, 'uuid' => $this->request->uuid];
-            }
-
-            public function cancel(): void
-            {
-            }
-
-            public function getInfo(?string $type = null): mixed
-            {
-                return null;
-            }
-        };
     }
 }
