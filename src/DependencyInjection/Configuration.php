@@ -66,7 +66,7 @@ final class Configuration implements ConfigurationInterface
                                 ->defaultNull()
                                 ->info('HTTP proxy URL (e.g., http://proxy.example.com:3128)')
                             ->end()
-                            ->scalarNode('use_test_webhook')
+                            ->booleanNode('use_test_webhook')
                                 ->defaultFalse()
                             ->end()
                         ->end()
