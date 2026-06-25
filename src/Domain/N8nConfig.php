@@ -27,7 +27,7 @@ final readonly class N8nConfig
     {
         return \sprintf(
             '%1$s/%2$s/%3$s',
-            $this->baseUrl,
+            rtrim($this->baseUrl, '/'),
             $this->useTestWebhook ? 'webhook-test' : 'webhook',
             $workflowId,
         );
