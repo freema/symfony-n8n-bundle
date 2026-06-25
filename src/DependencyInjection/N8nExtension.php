@@ -47,6 +47,7 @@ final class N8nExtension extends Extension
                 $clientConfig['dry_run'],
                 $clientConfig['default_headers'],
                 $clientConfig['proxy'],
+                $clientConfig['use_test_webhook'],
             ]);
             $container->setDefinition($configId, $configDefinition);
 

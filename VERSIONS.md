@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PHP 8.4 Support**: Tested and verified with PHP 8.4
 - **Enhanced CI/CD Pipeline**: Matrix testing across all supported PHP and Symfony versions
 - **Full RequestMethod Support**: HTTP client now respects `getN8nRequestMethod()` from payload (GET, POST_JSON, POST_FORM, PUT, PATCH)
+- **Use Unpublished Workflows**: Added `use_test_webhook` option to allow usage of unpublished N8N Workflows
 
 ### Changed
 - **Minimum PHP Version**: Now requires PHP 8.2+ (previously 8.1)
