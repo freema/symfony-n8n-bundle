@@ -10,6 +10,7 @@ use Freema\N8nBundle\Event\N8nRetryEvent;
 use Freema\N8nBundle\Exception\N8nCommunicationException;
 use Freema\N8nBundle\Exception\N8nTimeoutException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 final class RetryHandler
 {
@@ -20,6 +21,13 @@ final class RetryHandler
     ) {
     }
 
+    /**
+     * @template T
+     *
+     * @param callable(): T $operation
+     *
+     * @return T
+     */
     public function executeWithRetry(callable $operation, N8nRequest $request): mixed
     {
         $lastException = null;
@@ -58,7 +66,8 @@ final class RetryHandler
     private function isRetryableException(\Throwable $e): bool
     {
         return $e instanceof N8nTimeoutException
-            || ($e instanceof N8nCommunicationException && $e->getCode() >= 500);
+            || ($e instanceof N8nCommunicationException && $e->getCode() >= 500)
+            || $e->getPrevious() instanceof TransportExceptionInterface;
     }
 
     private function delay(int $attempt): void

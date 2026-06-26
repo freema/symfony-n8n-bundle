@@ -9,6 +9,7 @@ use Freema\N8nBundle\Contract\N8nPayloadInterface;
 use Freema\N8nBundle\Contract\N8nResponseHandlerInterface;
 use Freema\N8nBundle\Domain\N8nConfig;
 use Freema\N8nBundle\Domain\N8nRequest;
+use Freema\N8nBundle\Dto\N8nHttpResult;
 use Freema\N8nBundle\Dto\N8nResponse;
 use Freema\N8nBundle\Enum\CommunicationMode;
 use Freema\N8nBundle\Exception\N8nCommunicationException;
@@ -26,6 +27,7 @@ final class N8nClient implements N8nClientInterface
         private readonly ResponseMapper $responseMapper,
         private readonly ?RetryHandler $retryHandler = null,
         private readonly ?CircuitBreaker $circuitBreaker = null,
+        private readonly string $callbackRouteName = 'n8n_callback',
     ) {
     }
 
@@ -45,33 +47,42 @@ final class N8nClient implements N8nClientInterface
 
         $this->circuitBreaker?->checkAndThrow();
 
-        $operation = fn () => $this->httpClient->sendWebhook($request);
-        $response = $this->retryHandler !== null
-            ? $this->retryHandler->executeWithRetry($operation, $request)
-            : $operation();
+        // Treat 5xx as a retryable failure so the retry handler re-attempts it.
+        // Transport/timeout errors already arrive as typed N8nException from sendWebhook().
+        $operation = function () use ($request): N8nHttpResult {
+            $result = $this->httpClient->sendWebhook($request);
+
+            if ($result->statusCode >= 500) {
+                throw new N8nCommunicationException('N8n webhook returned error: '.$result->content, $result->statusCode);
+            }
+
+            return $result;
+        };
+
+        // Any transport/timeout/5xx failure must record a circuit breaker failure,
+        // otherwise the breaker never opens on outages.
+        try {
+            $result = $this->retryHandler !== null
+                ? $this->retryHandler->executeWithRetry($operation, $request)
+                : $operation();
+        } catch (\Throwable $e) {
+            $this->circuitBreaker?->recordFailure();
+            $this->requestTracker->completeRequest($request->uuid);
+            throw $e;
+        }
+
+        // Remaining 4xx responses are client errors and are not retried.
+        if ($result->statusCode >= 400) {
+            $this->circuitBreaker?->recordFailure();
+            $this->requestTracker->completeRequest($request->uuid);
+
+            throw new N8nCommunicationException('N8n webhook returned error: '.$result->content, $result->statusCode);
+        }
+
+        $this->circuitBreaker?->recordSuccess();
 
         try {
-            // @phpstan-ignore-next-line
-            $statusCode = $response->getStatusCode();
-            if ($statusCode >= 400) {
-                $exception = new N8nCommunicationException(
-                    // @phpstan-ignore-next-line
-                    'N8n webhook returned error: '.$response->getContent(false),
-                    $statusCode,
-                );
-                $this->circuitBreaker?->recordFailure();
-                throw $exception;
-            }
-
-            $this->circuitBreaker?->recordSuccess();
-
-            // Parse response data
-            // @phpstan-ignore-next-line
-            $responseContent = $response->getContent();
-            $responseData = json_decode($responseContent, true);
-            if (!\is_array($responseData)) {
-                $responseData = [];
-            }
+            $responseData = $result->toArray();
 
             // Map response to entity if class is specified
             $mappedResponse = null;
@@ -100,7 +111,7 @@ final class N8nClient implements N8nClientInterface
                 uuid: $request->uuid,
                 response: $responseData,
                 mappedResponse: $mappedResponse,
-                statusCode: $statusCode,
+                statusCode: $result->statusCode,
             );
         } catch (\Throwable $e) {
             $this->requestTracker->completeRequest($request->uuid);
@@ -110,7 +121,7 @@ final class N8nClient implements N8nClientInterface
 
     public function sendWithCallback(N8nPayloadInterface $payload, string $workflowId, N8nResponseHandlerInterface $handler): string
     {
-        $callbackUrl = $this->urlGenerator->generate('n8n_callback', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $callbackUrl = $this->urlGenerator->generate($this->callbackRouteName, [], UrlGeneratorInterface::ABSOLUTE_URL);
 
         $request = new N8nRequest(
             uuid: $this->uuidGenerator->generate(),
@@ -126,15 +137,11 @@ final class N8nClient implements N8nClientInterface
 
         $this->requestTracker->trackRequest($request);
 
-        $response = $this->httpClient->sendWebhook($request);
-
         try {
-            $statusCode = $response->getStatusCode();
-            if ($statusCode >= 400) {
-                throw new N8nCommunicationException(
-                    'N8n webhook returned error: '.$response->getContent(false),
-                    $statusCode,
-                );
+            $result = $this->httpClient->sendWebhook($request);
+
+            if ($result->statusCode >= 400) {
+                throw new N8nCommunicationException('N8n webhook returned error: '.$result->content, $result->statusCode);
             }
 
             return $request->uuid;
@@ -157,22 +164,17 @@ final class N8nClient implements N8nClientInterface
             timeoutSeconds: $timeoutSeconds,
         );
 
-        $response = $this->httpClient->sendWebhook($request);
+        $result = $this->httpClient->sendWebhook($request);
 
-        if ($response->getStatusCode() >= 400) {
-            throw new N8nCommunicationException(
-                'N8n webhook returned error: '.$response->getContent(false),
-                $response->getStatusCode(),
-            );
+        if ($result->statusCode >= 400) {
+            throw new N8nCommunicationException('N8n webhook returned error: '.$result->content, $result->statusCode);
         }
-
-        $responseData = $response->toArray();
 
         return new N8nResponse(
             uuid: $request->uuid,
-            response: $responseData,
+            response: $result->toArray(),
             mappedResponse: null,
-            statusCode: $response->getStatusCode(),
+            statusCode: $result->statusCode,
         );
     }
 

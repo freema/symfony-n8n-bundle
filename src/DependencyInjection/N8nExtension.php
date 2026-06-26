@@ -47,6 +47,7 @@ final class N8nExtension extends Extension
                 $clientConfig['dry_run'],
                 $clientConfig['default_headers'],
                 $clientConfig['proxy'],
+                $clientConfig['use_test_webhook'],
             ]);
             $container->setDefinition($configId, $configDefinition);
 
@@ -90,6 +91,7 @@ final class N8nExtension extends Extension
                 new Reference('n8n.response_mapper'),
                 isset($retryHandlerId) ? new Reference($retryHandlerId) : null,
                 isset($circuitBreakerId) ? new Reference($circuitBreakerId) : null,
+                '%n8n.callback.route_name%',
             ]);
             $container->setDefinition($clientId, $clientDefinition);
 

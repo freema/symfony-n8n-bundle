@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-26
+
 ### Added
 - **Symfony 8.0 Support**: Full compatibility with Symfony 8.0
 - **PHP 8.4 Support**: Tested and verified with PHP 8.4
 - **Enhanced CI/CD Pipeline**: Matrix testing across all supported PHP and Symfony versions
 - **Full RequestMethod Support**: HTTP client now respects `getN8nRequestMethod()` from payload (GET, POST_JSON, POST_FORM, PUT, PATCH)
+- **Test Webhook Support**: New `use_test_webhook` option targets n8n test webhooks (`/webhook-test/`), allowing use of unpublished workflows during development
 
 ### Changed
 - **Minimum PHP Version**: Now requires PHP 8.2+ (previously 8.1)
@@ -23,10 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **Memory Leak in RequestTracker**: Fixed missing `completeRequest()` call on successful `send()` - requests were never removed from tracker causing memory growth
 - **RequestMethod Ignored**: `N8nPayloadInterface::getN8nRequestMethod()` is now properly used by `N8nHttpClient` to set HTTP method and Content-Type
+- **Circuit Breaker Missed Transport Failures**: `N8nClient::send()` now records a failure for transport-level errors (timeouts, connection failures), not only HTTP error statuses, so the breaker can actually open on outages
+- **Hardcoded Callback Route**: `sendWithCallback()` now uses the configured `callback.route_name` instead of a hardcoded `n8n_callback`
+- **Double Slash in URLs**: `getWebhookUrl()` and `healthCheck()` now trim trailing slashes from `base_url`
+- **Retries Never Triggered on Network Failures**: the HTTP response is now materialized inside `N8nHttpClient`, so the retry handler actually re-attempts transport errors, timeouts and HTTP 5xx (previously the lazy response made the retry loop succeed on the first attempt)
+- **Untyped Transport Errors**: transport/timeout failures are now wrapped in `N8nCommunicationException` / `N8nTimeoutException` (typed via Symfony's `TransportExceptionInterface` / `TimeoutExceptionInterface`) instead of leaking raw Symfony exceptions; timeout detection no longer relies on string matching
 
 ### Breaking Changes
 - PHP 8.1 is no longer supported
 - Symfony 8.0 requires PHP 8.4+ (Symfony framework requirement)
+- `N8nHttpClient::sendWebhook()` now returns a materialized `Freema\N8nBundle\Dto\N8nHttpResult` instead of a lazy `Symfony\...\ResponseInterface` (internal collaborator; affects code that called `N8nHttpClient` directly)
 
 ## [1.1.0] - 2025-07-14
 
