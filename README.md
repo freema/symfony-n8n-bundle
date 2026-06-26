@@ -14,14 +14,13 @@ Elegant integration between Symfony applications and n8n workflow automation pla
 
 ## Requirements
 
-| Version  | PHP  | Symfony  |
-|----------|------|----------|
-| 2.x      | ^8.2 | 6.4, 7.x |
-| 2.x      | ^8.4 | 8.0      |
-| 1.3      | ^8.2 | 6.4, 7.x |
-| 1.0-1.2  | ^8.1 | 6.4, 7.0 |
+| Bundle  | PHP    | Symfony       |
+|---------|--------|---------------|
+| 2.x     | 8.2+ * | 6.4, 7.x, 8.0 |
+| 1.3     | 8.2+   | 6.4, 7.x      |
+| 1.0–1.2 | 8.1+   | 6.4, 7.0      |
 
-> **Note:** Symfony 8.0 requires PHP 8.4+
+> \* Symfony 8.0 itself requires PHP 8.4+. On PHP 8.2/8.3 the bundle runs with Symfony 6.4 or 7.x; use PHP 8.4+ if you want Symfony 8.0.
 
 ## Quick Start
 
