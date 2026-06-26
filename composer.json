@@ -3,14 +3,18 @@
     "type": "symfony-bundle",
     "description": "Symfony bundle for elegant integration with n8n workflow automation platform",
     "keywords": ["symfony", "n8n", "workflow", "automation", "webhook"],
-    "homepage": "https://github.com/freema/n8n-bundle",
+    "homepage": "https://github.com/freema/symfony-n8n-bundle",
     "license": "MIT",
     "authors": [
         {
-            "name": "Freema (tomas grasa)",
+            "name": "Tomáš Grasl",
             "homepage": "https://github.com/freema"
         }
     ],
+    "support": {
+        "issues": "https://github.com/freema/symfony-n8n-bundle/issues",
+        "source": "https://github.com/freema/symfony-n8n-bundle"
+    },
     "require": {
         "php": "^8.2",
         "symfony/framework-bundle": "^6.4|^7.0|^8.0",

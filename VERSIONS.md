@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-06-26
+
+### Added
+- **Documentation**: new "Error Handling" section covering the exception hierarchy, retry behavior, circuit breaker and test webhooks; documented the `N8nResponse` object accessors.
+
+### Fixed
+- **Documentation**: corrected the `send()` / `sendSync()` return type in the README — they return an `N8nResponse` object, not an array.
+
+### Changed
+- **Package metadata**: fixed `homepage` to the current repository URL, added a `support` section, and corrected the author name in `composer.json`.
+
 ## [2.0.0] - 2026-06-26
 
 ### Added

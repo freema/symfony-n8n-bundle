@@ -14,11 +14,12 @@ Elegant integration between Symfony applications and n8n workflow automation pla
 
 ## Requirements
 
-| Version | PHP | Symfony |
-|---------|-----|---------|
-| 1.3+    | ^8.2 | 6.4, 7.x |
-| 1.3+    | ^8.4 | 8.0 |
-| 1.0-1.2 | ^8.1 | 6.4, 7.0 |
+| Version  | PHP  | Symfony  |
+|----------|------|----------|
+| 2.x      | ^8.2 | 6.4, 7.x |
+| 2.x      | ^8.4 | 8.0      |
+| 1.3      | ^8.2 | 6.4, 7.x |
+| 1.0-1.2  | ^8.1 | 6.4, 7.0 |
 
 > **Note:** Symfony 8.0 requires PHP 8.4+
 
@@ -117,15 +118,20 @@ class ForumPost implements N8nPayloadInterface
 ```php
 <?php
 
-// Fire & Forget - returns response data immediately
-$result = $n8nClient->send($post, 'workflow-id');
-// $result = ['uuid' => '...', 'response' => [...], 'mapped_response' => object, 'status_code' => 200]
+// Fire & Forget - returns an N8nResponse object immediately
+$response = $n8nClient->send($post, 'workflow-id');
+$response->getUuid();           // request UUID
+$response->getResponse();       // raw response data (array)
+$response->getMappedResponse(); // mapped entity (object) or null
+$response->getStatusCode();     // HTTP status code
+$response->isSuccess();         // true for 2xx
+$response->toArray();           // ['uuid' => ..., 'response' => ..., 'mapped_response' => ..., 'status_code' => ...]
 
 // Async with callback
 $uuid = $n8nClient->sendWithCallback($post, 'workflow-id', $responseHandler);
 
 // Sync
-$result = $n8nClient->sendSync($post, 'workflow-id');
+$response = $n8nClient->sendSync($post, 'workflow-id');
 ```
 
 ## Communication Modes
@@ -134,8 +140,8 @@ $result = $n8nClient->sendSync($post, 'workflow-id');
 Sends data to n8n and returns immediate response from webhook.
 
 ```php
-$result = $n8nClient->send($payload, 'workflow-id');
-// Returns: ['uuid' => '...', 'response' => {...}, 'mapped_response' => object|null, 'status_code' => 200]
+$response = $n8nClient->send($payload, 'workflow-id');
+// Returns an N8nResponse object: getUuid(), getResponse(), getMappedResponse(), getStatusCode(), isSuccess(), toArray()
 ```
 
 ### Async with Callback
@@ -162,7 +168,58 @@ $uuid = $n8nClient->sendWithCallback($payload, 'workflow-id', new MyResponseHand
 Waits for immediate response (if n8n webhook supports it).
 
 ```php
-$result = $n8nClient->sendSync($payload, 'workflow-id', 30); // 30s timeout
+$response = $n8nClient->sendSync($payload, 'workflow-id', 30); // 30s timeout
+```
+
+## Error Handling
+
+All errors thrown by the client extend `Freema\N8nBundle\Exception\N8nException`:
+
+| Exception | Thrown when |
+|-----------|-------------|
+| `N8nException` | Base class for every bundle exception |
+| `N8nCommunicationException` | HTTP error status (`>= 400`, code = status), a transport failure, or an open circuit breaker |
+| `N8nTimeoutException` | The request timed out (extends `N8nCommunicationException`) |
+
+```php
+use Freema\N8nBundle\Exception\N8nException;
+use Freema\N8nBundle\Exception\N8nTimeoutException;
+
+try {
+    $response = $n8nClient->send($payload, 'workflow-id');
+} catch (N8nTimeoutException $e) {
+    // request timed out (after retries)
+} catch (N8nException $e) {
+    // any other communication error; $e->getCode() holds the HTTP status for error responses
+}
+```
+
+### Retries
+
+When `retry_attempts > 0`, failed requests are retried with exponential backoff
+(`retry_delay_ms`, doubled each attempt). Retries apply to **transport errors,
+timeouts and HTTP 5xx** responses. Client errors (4xx) are **not** retried.
+
+### Circuit Breaker
+
+With `enable_circuit_breaker: true`, the client opens the circuit after
+`circuit_breaker_threshold` consecutive failures and rejects further calls
+(throwing `N8nCommunicationException`) for `circuit_breaker_timeout_seconds`
+before trying again. A successful call resets the breaker.
+
+> The circuit breaker is in-memory, so its state lives for the duration of a single
+> PHP process — it is most useful in long-running workers (e.g. Symfony Messenger).
+
+### Test Webhooks
+
+During development you can target n8n's *test* webhook URL (`/webhook-test/`) instead
+of the production one (`/webhook/`) to use unpublished workflows:
+
+```yaml
+n8n:
+  clients:
+    default:
+      use_test_webhook: true  # default: false
 ```
 
 ## HTTP Methods and Content Types
@@ -210,8 +267,8 @@ class ForumPost implements N8nPayloadInterface
 }
 
 // 3. Use mapped object
-$result = $n8nClient->send($post, 'workflow-id');
-$mappedResponse = $result['mapped_response']; // Instance of ModerationResponse
+$response = $n8nClient->send($post, 'workflow-id');
+$mappedResponse = $response->getMappedResponse(); // Instance of ModerationResponse
 $isAllowed = $mappedResponse->allowed; // Type-safe access
 ```
 
@@ -501,6 +558,7 @@ n8n:
       circuit_breaker_threshold: 5
       circuit_breaker_timeout_seconds: 60
       dry_run: false
+      use_test_webhook: false  # Use /webhook-test/ for unpublished workflows
       proxy: 'http://proxy.example.com:3128'  # Optional HTTP proxy
       default_headers:
         X-Custom-Header: 'My App'
