@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-01
+
 ### Security
 - **Callbacks must be signed.** The callback endpoint accepted any POST that carried a `_n8n_bundle.uuid`, so anyone who could reach it could forge an n8n response: dispatch `N8nResponseReceivedEvent` with arbitrary data and, for a pending request, run its response handler. `sendWithCallback()` now hands n8n a callback URL with an expiry and an HMAC-SHA256 of the request UUID (also echoed in the `_n8n_bundle` block); the endpoint answers `401` without a valid signature and `409` to a callback that was already handled.
 - The callback controller no longer writes the raw request body of an invalid callback to the log.
