@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **Callbacks must be signed.** The callback endpoint accepted any POST that carried a `_n8n_bundle.uuid`, so anyone who could reach it could forge an n8n response: dispatch `N8nResponseReceivedEvent` with arbitrary data and, for a pending request, run its response handler. `sendWithCallback()` now hands n8n a callback URL with an expiry and an HMAC-SHA256 of the request UUID (also echoed in the `_n8n_bundle` block); the endpoint answers `401` without a valid signature and `409` to a callback that was already handled.
+- The callback controller no longer writes the raw request body of an invalid callback to the log.
+
+### Fixed
+- **Callback handlers never ran under PHP-FPM.** Pending requests lived in the memory of the process that sent them, so a callback (handled by another worker) never found its handler. They are now kept in a cache pool (`tracking.cache_pool`, default `cache.app`) and the handler is found again by `getHandlerId()` among services implementing `N8nResponseHandlerInterface` (autoconfigured with the `n8n.response_handler` tag).
+
+### Added
+- `callback.secret` (default: `kernel.secret`), `callback.require_signature` (default `true`) and `tracking.cache_pool` (default `cache.app`).
+
+### Deprecated
+- `callback.route_path` was never used. Define the callback route in your routing configuration (see the README).
+
 ## [2.0.1] - 2026-06-26
 
 ### Added
@@ -138,6 +151,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Migration
 
+### From 2.0 to 2.1
+- **n8n workflows** must post the callback to the `callback_url` they receive in `_n8n_bundle` (it now carries `expires` and `signature`), or echo the whole `_n8n_bundle` block in the callback body. A workflow that posts only the UUID to a fixed URL gets `401`; set `callback.require_signature: false` only for as long as it takes to update such workflows.
+- **Response handlers** used with `sendWithCallback()` should be services, so a callback handled by another PHP process can find them. Autoconfigured services need no change.
+- **Several servers** receiving callbacks need a shared `tracking.cache_pool` (e.g. a Redis pool); the default `cache.app` is per server.
+- **`framework.secret` must be set** (or `callback.secret`); `sendWithCallback()` refuses to sign with an empty secret.
+- `n8n:cleanup` only clears requests tracked in the current process; pooled requests expire after `tracking.max_request_age_seconds`.
+
 ### From version 0.x to 1.x
 This is the first stable release - no migration needed.
 
@@ -146,7 +166,7 @@ This is the first stable release - no migration needed.
 ### v1.2.0
 - [ ] Batch operations for bulk sending
 - [ ] Metrics and monitoring integration (Prometheus)
-- [ ] Webhook signature verification
+- [x] Webhook signature verification (callbacks, 2.1)
 - [ ] Enhanced retry strategies (exponential backoff)
 
 ### v1.3.0

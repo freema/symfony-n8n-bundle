@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Freema\N8nBundle\DependencyInjection;
 
+use Freema\N8nBundle\Contract\N8nResponseHandlerInterface;
 use Freema\N8nBundle\Domain\N8nConfig;
 use Freema\N8nBundle\Service\CircuitBreaker;
 use Freema\N8nBundle\Service\RetryHandler;
@@ -23,6 +24,9 @@ final class N8nExtension extends Extension
 
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
+
+        $container->registerForAutoconfiguration(N8nResponseHandlerInterface::class)
+            ->addTag('n8n.response_handler');
 
         $this->registerClients($config['clients'], $container);
         $this->registerCallbackConfiguration($config['callback'], $container);
@@ -92,6 +96,7 @@ final class N8nExtension extends Extension
                 isset($retryHandlerId) ? new Reference($retryHandlerId) : null,
                 isset($circuitBreakerId) ? new Reference($circuitBreakerId) : null,
                 '%n8n.callback.route_name%',
+                new Reference('n8n.callback_signer'),
             ]);
             $container->setDefinition($clientId, $clientDefinition);
 
@@ -105,12 +110,23 @@ final class N8nExtension extends Extension
     {
         $container->setParameter('n8n.callback.route_name', $callbackConfig['route_name']);
         $container->setParameter('n8n.callback.route_path', $callbackConfig['route_path']);
+        $container->setParameter('n8n.callback.require_signature', $callbackConfig['require_signature']);
+
+        // Null falls back to kernel.secret, read when a callback is signed.
+        $container->getDefinition('n8n.callback_signer')
+            ->setArgument(0, $callbackConfig['secret']);
     }
 
     private function registerTrackingConfiguration(array $trackingConfig, ContainerBuilder $container): void
     {
         $container->setParameter('n8n.tracking.cleanup_interval_seconds', $trackingConfig['cleanup_interval_seconds']);
         $container->setParameter('n8n.tracking.max_request_age_seconds', $trackingConfig['max_request_age_seconds']);
+
+        $container->getDefinition('n8n.request_tracker')->setArguments([
+            $trackingConfig['cache_pool'] !== null ? new Reference($trackingConfig['cache_pool']) : null,
+            new Reference('n8n.response_handler_registry'),
+            '%n8n.tracking.max_request_age_seconds%',
+        ]);
     }
 
     private function registerDebugConfiguration(array $debugConfig, ContainerBuilder $container): void

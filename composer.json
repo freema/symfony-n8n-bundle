@@ -27,6 +27,7 @@
         "symfony/dependency-injection": "^6.4|^7.0|^8.0",
         "symfony/yaml": "^6.4|^7.0|^8.0",
         "symfony/property-access": "^6.4|^7.0|^8.0",
+        "psr/cache": "^2.0|^3.0",
         "psr/log": "^3.0"
     },
     "require-dev": {

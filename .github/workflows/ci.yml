@@ -134,7 +134,7 @@ jobs:
       - name: Run tests
         env:
           SYMFONY_DEPRECATIONS_HELPER: max[direct]=0
-        run: vendor/bin/phpunit --testsuite=Unit
+        run: vendor/bin/phpunit
 
   tests-coverage:
     name: Tests with Coverage
@@ -171,7 +171,7 @@ jobs:
           mkdir -p var/cache var/log
 
       - name: Run tests with coverage
-        run: vendor/bin/phpunit --testsuite=Unit --coverage-text --coverage-clover=coverage.xml
+        run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -213,4 +213,4 @@ jobs:
       - name: Run deprecation check
         env:
           SYMFONY_DEPRECATIONS_HELPER: max[self]=0&max[direct]=0
-        run: vendor/bin/phpunit --testsuite=Unit
+        run: vendor/bin/phpunit

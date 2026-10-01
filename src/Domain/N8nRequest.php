@@ -22,6 +22,8 @@ final readonly class N8nRequest
         public ?N8nResponseHandlerInterface $responseHandler = null,
         public ?string $callbackUrl = null,
         public ?int $timeoutSeconds = null,
+        public ?int $callbackExpires = null,
+        public ?string $callbackSignature = null,
     ) {
     }
 
@@ -38,6 +40,13 @@ final readonly class N8nRequest
 
         if ($this->callbackUrl !== null) {
             $payload['_n8n_bundle']['callback_url'] = $this->callbackUrl;
+        }
+
+        // Also in the body, so a workflow that echoes "_n8n_bundle" back
+        // carries the signature even if it posts to a fixed URL.
+        if ($this->callbackSignature !== null) {
+            $payload['_n8n_bundle']['expires'] = $this->callbackExpires;
+            $payload['_n8n_bundle']['signature'] = $this->callbackSignature;
         }
 
         if ($this->responseHandler !== null) {

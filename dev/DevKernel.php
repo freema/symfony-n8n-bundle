@@ -78,7 +78,6 @@ class DevKernel extends Kernel
             ],
             'callback' => [
                 'route_name' => 'n8n_callback',
-                'route_path' => '/api/n8n/callback',
             ],
             'debug' => [
                 'enabled' => true,

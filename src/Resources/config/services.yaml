@@ -8,8 +8,25 @@ services:
     class: Freema\N8nBundle\Service\UuidGenerator
     public: false
 
+  # Arguments are set by N8nExtension (tracking.cache_pool)
   n8n.request_tracker:
     class: Freema\N8nBundle\Service\RequestTracker
+    public: false
+
+  n8n.response_handler_registry:
+    class: Freema\N8nBundle\Service\ResponseHandlerRegistry
+    arguments:
+      - !tagged_iterator n8n.response_handler
+    public: false
+
+  # Argument 0 is callback.secret (set by N8nExtension); null reads
+  # kernel.secret from the parameter bag when a callback is signed.
+  n8n.callback_signer:
+    class: Freema\N8nBundle\Service\CallbackSigner
+    arguments:
+      - null
+      - '%n8n.tracking.max_request_age_seconds%'
+      - '@parameter_bag'
     public: false
 
   n8n.response_mapper:
@@ -29,6 +46,9 @@ services:
     arguments:
       - '@n8n.callback_handler'
       - '@logger'
+      - '@n8n.callback_signer'
+      - '@n8n.request_tracker'
+      - '%n8n.callback.require_signature%'
     tags:
       - { name: 'controller.service_arguments' }
 
