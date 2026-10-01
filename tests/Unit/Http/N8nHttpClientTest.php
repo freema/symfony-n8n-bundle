@@ -56,7 +56,7 @@ class N8nHttpClientTest extends TestCase
     {
         $client = new N8nHttpClient(
             $this->config(),
-            new MockHttpClient(fn () => throw new TransportException('Connection refused')),
+            new MockHttpClient(static fn () => throw new TransportException('Connection refused')),
         );
 
         $this->expectException(N8nCommunicationException::class);
@@ -68,7 +68,7 @@ class N8nHttpClientTest extends TestCase
     {
         $client = new N8nHttpClient(
             $this->config(),
-            new MockHttpClient(fn () => throw new TimeoutException('Idle timeout reached')),
+            new MockHttpClient(static fn () => throw new TimeoutException('Idle timeout reached')),
         );
 
         $this->expectException(N8nTimeoutException::class);
@@ -80,7 +80,7 @@ class N8nHttpClientTest extends TestCase
     {
         $client = new N8nHttpClient(
             $this->config(dryRun: true),
-            new MockHttpClient(fn () => throw new \RuntimeException('HTTP client must not be called in dry-run')),
+            new MockHttpClient(static fn () => throw new \RuntimeException('HTTP client must not be called in dry-run')),
         );
 
         $result = $client->sendWebhook($this->request());
