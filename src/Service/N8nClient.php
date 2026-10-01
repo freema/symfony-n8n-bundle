@@ -28,6 +28,7 @@ final class N8nClient implements N8nClientInterface
         private readonly ?RetryHandler $retryHandler = null,
         private readonly ?CircuitBreaker $circuitBreaker = null,
         private readonly string $callbackRouteName = 'n8n_callback',
+        private readonly ?CallbackSigner $callbackSigner = null,
     ) {
     }
 
@@ -121,10 +122,15 @@ final class N8nClient implements N8nClientInterface
 
     public function sendWithCallback(N8nPayloadInterface $payload, string $workflowId, N8nResponseHandlerInterface $handler): string
     {
-        $callbackUrl = $this->urlGenerator->generate($this->callbackRouteName, [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $uuid = $this->uuidGenerator->generate();
+
+        // The callback URL carries an expiry and an HMAC of the UUID: the
+        // callback controller accepts only responses signed this way.
+        $signed = $this->callbackSigner?->sign($uuid) ?? [];
+        $callbackUrl = $this->urlGenerator->generate($this->callbackRouteName, $signed, UrlGeneratorInterface::ABSOLUTE_URL);
 
         $request = new N8nRequest(
-            uuid: $this->uuidGenerator->generate(),
+            uuid: $uuid,
             workflowId: $workflowId,
             payload: $payload,
             mode: CommunicationMode::ASYNC_WITH_CALLBACK,
@@ -133,6 +139,8 @@ final class N8nClient implements N8nClientInterface
             requestMethod: $payload->getN8nRequestMethod(),
             responseHandler: $handler,
             callbackUrl: $callbackUrl,
+            callbackExpires: $signed[CallbackSigner::EXPIRES_PARAMETER] ?? null,
+            callbackSignature: $signed[CallbackSigner::SIGNATURE_PARAMETER] ?? null,
         );
 
         $this->requestTracker->trackRequest($request);

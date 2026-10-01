@@ -33,10 +33,14 @@ final class CallbackHandler
         $responseHandler = $this->requestTracker->getResponseHandler($response->uuid);
 
         if ($responseHandler === null) {
+            // Either the request is unknown (expired, or the cache pool was
+            // cleared) or its handler is not a service and so cannot be found
+            // outside the process that sent it.
             $this->logger->warning('No response handler found for N8n callback', [
                 'uuid' => $response->uuid,
                 'handler_id' => $response->handlerId,
             ]);
+            $this->requestTracker->completeRequest($response->uuid);
 
             return;
         }

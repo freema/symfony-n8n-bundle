@@ -144,24 +144,81 @@ $response = $n8nClient->send($payload, 'workflow-id');
 ```
 
 ### Async with Callback
-Sends data + callback URL, n8n processes and returns result.
+Sends data + a callback URL; n8n processes it and posts the result back.
 
 ```php
-class MyResponseHandler implements N8nResponseHandlerInterface
+use Freema\N8nBundle\Contract\N8nResponseHandlerInterface;
+
+// A service: autoconfigured services implementing the interface are found
+// again by getHandlerId() when the callback arrives in another PHP process.
+final class MyResponseHandler implements N8nResponseHandlerInterface
 {
     public function handleN8nResponse(array $responseData, string $requestUuid): void
     {
         // Process response from n8n
     }
-    
+
     public function getHandlerId(): string
     {
         return 'my_handler';
     }
 }
 
-$uuid = $n8nClient->sendWithCallback($payload, 'workflow-id', new MyResponseHandler());
+$uuid = $n8nClient->sendWithCallback($payload, 'workflow-id', $myResponseHandler);
 ```
+
+**1. Register the callback route** (the bundle does not import routes for you):
+
+```yaml
+# config/routes/n8n.yaml
+n8n_callback:
+    path: /api/n8n/callback
+    controller: Freema\N8nBundle\Controller\N8nCallbackController::handleCallback
+    methods: [POST]
+```
+
+The route name must match `n8n.callback.route_name` (default `n8n_callback`).
+
+**2. In the n8n workflow, post the result to the URL you were given.** The
+webhook payload contains an `_n8n_bundle` block:
+
+```json
+{
+  "_n8n_bundle": {
+    "uuid": "0d2b4f6e-8a1c-4e3b-9f7d-5c6a8b9e0f12",
+    "callback_url": "https://app.example.com/api/n8n/callback?expires=1790000000&signature=4f1c…",
+    "expires": 1790000000,
+    "signature": "4f1c…",
+    "handler_id": "my_handler"
+  }
+}
+```
+
+End the workflow with an *HTTP Request* node: method `POST`, URL
+`{{ $('Webhook').item.json.body._n8n_bundle.callback_url }}`, and a JSON body
+that contains your result **and the `_n8n_bundle` block echoed back**:
+
+```json
+{ "_n8n_bundle": {{ JSON.stringify($('Webhook').item.json.body._n8n_bundle) }}, "allowed": true }
+```
+
+**Callbacks are signed.** The callback URL carries an expiry and an HMAC of
+the request UUID, keyed by `n8n.callback.secret` (default: your
+`framework.secret`). The endpoint answers `401` to a callback without a valid
+signature, `409` to one that was already handled, and accepts a callback until
+`tracking.max_request_age_seconds` (default 24 h) after the request. Posting to
+the given `callback_url` is enough; a workflow that posts to a fixed URL works
+as long as it echoes `_n8n_bundle`, which carries the same signature.
+
+**Pending requests live in a cache pool** (`tracking.cache_pool`, default
+`cache.app`), because the callback is handled by a different PHP process than
+the one that sent the request. Every process that receives callbacks must see
+the same pool: the default filesystem pool works on a single server; with
+several servers use a shared pool (Redis, Memcached, database). The handler is
+looked up by `getHandlerId()` among services implementing
+`N8nResponseHandlerInterface`; a handler created with `new` is only reachable
+from the process that sent the request. `N8nResponseReceivedEvent` is
+dispatched for every accepted callback either way.
 
 ### Sync
 Waits for immediate response (if n8n webhook supports it).
@@ -424,11 +481,10 @@ class ForumPostModerationHandler implements N8nResponseHandlerInterface
     }
 }
 
-// 3. Usage
+// 3. Usage: inject the handler as a service, so the callback finds it
 $post = new ForumPost(/*...*/);
-$handler = new ForumPostModerationHandler();
 
-$uuid = $n8nClient->sendWithCallback($post, 'moderation-workflow-id', $handler);
+$uuid = $n8nClient->sendWithCallback($post, 'moderation-workflow-id', $this->moderationHandler);
 ```
 
 ## Testing
@@ -568,12 +624,14 @@ n8n:
       dry_run: true
   
   callback:
-    route_name: 'n8n_callback'
-    route_path: '/api/n8n/callback'
-  
+    route_name: 'n8n_callback'      # route that receives callbacks (see "Async with Callback")
+    secret: '%env(N8N_CALLBACK_SECRET)%'  # optional, defaults to framework.secret
+    require_signature: true         # never turn off in production
+
   tracking:
     cleanup_interval_seconds: 3600
-    max_request_age_seconds: 86400
+    max_request_age_seconds: 86400  # how long a callback is accepted
+    cache_pool: 'cache.app'         # shared by every process that receives callbacks
 ```
 
 ## Author
