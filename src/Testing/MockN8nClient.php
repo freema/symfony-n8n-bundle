@@ -275,7 +275,7 @@ final class MockN8nClient implements N8nClientInterface
      */
     public function assertSentWithPayload(string $workflowId, array $expectedData): void
     {
-        $this->assertSent($workflowId, function (array $request) use ($expectedData) {
+        $this->assertSent($workflowId, static function (array $request) use ($expectedData) {
             $actualPayload = $request['payload']->toN8nPayload();
 
             foreach ($expectedData as $key => $value) {
@@ -305,7 +305,7 @@ final class MockN8nClient implements N8nClientInterface
     {
         return array_filter(
             $this->sentRequests,
-            fn (array $request) => $request['workflow_id'] === $workflowId,
+            static fn (array $request) => $request['workflow_id'] === $workflowId,
         );
     }
 
@@ -334,7 +334,7 @@ final class MockN8nClient implements N8nClientInterface
     {
         return array_filter(
             $this->sentRequests,
-            function (array $request) use ($workflowId, $callback) {
+            static function (array $request) use ($workflowId, $callback) {
                 if ($request['workflow_id'] !== $workflowId) {
                     return false;
                 }

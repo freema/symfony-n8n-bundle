@@ -127,7 +127,7 @@ class MockN8nClientTest extends TestCase
         $payload = new TestPayload('test');
         $this->client->send($payload, 'workflow-123');
 
-        $this->client->assertSent('workflow-123', function (array $request) {
+        $this->client->assertSent('workflow-123', static function (array $request) {
             return $request['method'] === 'send';
         });
 

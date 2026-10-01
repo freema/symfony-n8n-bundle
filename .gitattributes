@@ -1,0 +1,12 @@
+# Keep development files out of the Composer dist archive
+/.gitattributes     export-ignore
+/.github            export-ignore
+/.gitignore         export-ignore
+/.php-cs-fixer.php  export-ignore
+/CONTRIBUTING.md    export-ignore
+/dev                export-ignore
+/docker-compose.yml export-ignore
+/phpstan.neon       export-ignore
+/phpunit.xml.dist   export-ignore
+/Taskfile.yml       export-ignore
+/tests              export-ignore

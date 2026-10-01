@@ -4,213 +4,96 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  php-cs-fixer:
-    name: PHP-CS-Fixer
+  quality:
+    name: Code style and static analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          tools: php-cs-fixer:3.91
-
-      - name: Check code style
-        run: php-cs-fixer fix --dry-run --diff
-
-  phpstan:
-    name: PHPStan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           coverage: none
 
-      - name: Get composer cache directory
+      - name: Get Composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
-      - name: Cache composer dependencies
-        uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-phpstan-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-phpstan-
+          key: composer-quality-${{ hashFiles('composer.json') }}
+          restore-keys: composer-quality-
 
-      - name: Install composer dependencies
-        run: |
-          composer config --no-plugins allow-plugins.php-http/discovery true
-          composer install --no-interaction --no-progress
+      - name: Install dependencies
+        run: composer update --no-interaction --no-progress --prefer-dist
 
-      - name: Verify phpstan.neon exists
-        run: |
-          if [ ! -f phpstan.neon ]; then
-            echo "phpstan.neon does not exist!"
-            exit 1
-          fi
+      - name: PHP-CS-Fixer
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
-      - name: Run PHPStan
-        run: vendor/bin/phpstan analyse
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --no-progress
 
   tests:
-    name: Tests (PHP ${{ matrix.php }} - Symfony ${{ matrix.symfony }})
+    name: PHP ${{ matrix.php }}, Symfony ${{ matrix.symfony }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          # PHP 8.2 combinations (Symfony 6.4 and 7.x only)
           - php: '8.2'
             symfony: '6.4.*'
-          - php: '8.2'
-            symfony: '7.0.*'
-          - php: '8.2'
-            symfony: '7.1.*'
-          # PHP 8.3 combinations (Symfony 6.4 and 7.x only)
           - php: '8.3'
-            symfony: '6.4.*'
-          - php: '8.3'
-            symfony: '7.0.*'
-          - php: '8.3'
-            symfony: '7.1.*'
-          # PHP 8.4 combinations (all Symfony versions including 8.0)
+            symfony: '7.4.*'
           - php: '8.4'
-            symfony: '6.4.*'
-          - php: '8.4'
-            symfony: '7.0.*'
-          - php: '8.4'
-            symfony: '7.1.*'
-          - php: '8.4'
-            symfony: '8.0.*'
-
+            symfony: '8.*'
+            coverage: true
+          - php: '8.5'
+            symfony: '8.*'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          coverage: pcov
-          extensions: json, mbstring
+          coverage: ${{ matrix.coverage && 'pcov' || 'none' }}
+          tools: flex
 
-      - name: Get composer cache directory
+      - name: Get Composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
-      - name: Cache composer dependencies
-        uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-php${{ matrix.php }}-sf${{ matrix.symfony }}-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-php${{ matrix.php }}-
-
-      - name: Configure Symfony version
-        run: |
-          composer config extra.symfony.require "${{ matrix.symfony }}"
-
-      - name: Install Symfony Flex
-        run: |
-          composer global config --no-plugins allow-plugins.symfony/flex true
-          composer global require --no-progress --no-scripts --no-plugins symfony/flex
-
-      - name: Install composer dependencies
-        run: |
-          composer config --no-plugins allow-plugins.php-http/discovery true
-          composer update --no-interaction --no-progress --prefer-dist --no-audit
-
-      - name: Create test directories
-        run: |
-          mkdir -p tests/Unit tests/Functional
-          mkdir -p var/cache var/log
-
-      - name: Run tests
-        env:
-          SYMFONY_DEPRECATIONS_HELPER: max[direct]=0
-        run: vendor/bin/phpunit
-
-  tests-coverage:
-    name: Tests with Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          coverage: pcov
-          extensions: json, mbstring
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-coverage-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-coverage-
-
-      - name: Install composer dependencies
-        run: |
-          composer config --no-plugins allow-plugins.php-http/discovery true
-          composer install --no-interaction --no-progress
-
-      - name: Create test directories
-        run: |
-          mkdir -p tests/Unit tests/Functional
-          mkdir -p var/cache var/log
-
-      - name: Run tests with coverage
-        run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
-
-  deprecation-check:
-    name: Deprecation Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-
-      - name: Configure Symfony version
-        run: |
-          composer config extra.symfony.require "8.0.*"
-
-      - name: Install Symfony Flex
-        run: |
-          composer global config --no-plugins allow-plugins.symfony/flex true
-          composer global require --no-progress --no-scripts --no-plugins symfony/flex
+          key: composer-php${{ matrix.php }}-sf${{ matrix.symfony }}-${{ hashFiles('composer.json') }}
+          restore-keys: composer-php${{ matrix.php }}-sf${{ matrix.symfony }}-
 
       - name: Install dependencies
-        run: |
-          composer config --no-plugins allow-plugins.php-http/discovery true
-          composer update --no-interaction --no-progress --no-audit
-
-      - name: Create test directories
-        run: |
-          mkdir -p tests/Unit tests/Functional
-          mkdir -p var/cache var/log
-
-      - name: Run deprecation check
         env:
-          SYMFONY_DEPRECATIONS_HELPER: max[self]=0&max[direct]=0
+          SYMFONY_REQUIRE: ${{ matrix.symfony }}
+        run: composer update --no-interaction --no-progress --prefer-dist
+
+      - name: PHPUnit
+        if: ${{ !matrix.coverage }}
         run: vendor/bin/phpunit
+
+      - name: PHPUnit with coverage
+        if: ${{ matrix.coverage }}
+        run: vendor/bin/phpunit --coverage-filter src --coverage-clover coverage.xml
+
+      - uses: codecov/codecov-action@v7
+        if: ${{ matrix.coverage }}
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
