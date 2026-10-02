@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- A signed callback whose `_n8n_bundle.handler_id` or `client_id` is not a string no longer fails with HTTP 500; the value is ignored.
+
+### Changed
+- **Development**: PHPStan 2 at level `max`, PHPUnit 11.5 with test metadata as attributes, and the test suite fails on deprecations triggered by the bundle's own code. `symfony/phpunit-bridge` was unused and is no longer a dev dependency. The Taskfile Symfony matrix (`test:sf64`, `test:sf74`, `test:sf8`) now really pins the Symfony version, the same way CI does.
+
 ## [2.1.0] - 2026-10-01
 
 ### Security

@@ -18,13 +18,24 @@ final readonly class N8nResponse
     public static function fromWebhookPayload(array $payload): self
     {
         $bundleData = $payload['_n8n_bundle'] ?? [];
+        if (!\is_array($bundleData)) {
+            $bundleData = [];
+        }
 
         return new self(
-            uuid: $bundleData['uuid'] ?? '',
+            uuid: self::stringOrNull($bundleData, 'uuid') ?? '',
             data: $payload,
             receivedAt: new \DateTimeImmutable(),
-            handlerId: $bundleData['handler_id'] ?? null,
-            clientId: $bundleData['client_id'] ?? null,
+            handlerId: self::stringOrNull($bundleData, 'handler_id'),
+            clientId: self::stringOrNull($bundleData, 'client_id'),
         );
+    }
+
+    /**
+     * @param array<mixed> $data
+     */
+    private static function stringOrNull(array $data, string $key): ?string
+    {
+        return \is_string($data[$key] ?? null) ? $data[$key] : null;
     }
 }

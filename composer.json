@@ -31,10 +31,9 @@
         "psr/log": "^3.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0|^11.0",
-        "symfony/phpunit-bridge": "^6.4|^7.0|^8.0",
+        "phpunit/phpunit": "^11.5",
         "symfony/var-dumper": "^6.4|^7.0|^8.0",
-        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan": "^2.2",
         "friendsofphp/php-cs-fixer": "^3.14",
         "symfony/web-profiler-bundle": "^6.4|^7.0|^8.0",
         "symfony/twig-bundle": "^6.4|^7.0|^8.0",

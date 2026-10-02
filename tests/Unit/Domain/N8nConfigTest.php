@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Freema\N8nBundle\Tests\Unit\Domain;
 
 use Freema\N8nBundle\Domain\N8nConfig;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \Freema\N8nBundle\Domain\N8nConfig
- */
+#[CoversClass(N8nConfig::class)]
 class N8nConfigTest extends TestCase
 {
     public function testWebhookUrlUsesProductionPathByDefault(): void

@@ -30,10 +30,23 @@ use Freema\N8nBundle\Enum\CommunicationMode;
  * $mockClient->assertSent('workflow-id');
  * $mockClient->assertSentCount(1);
  * ```
+ *
+ * @phpstan-type RecordedRequest array{
+ *     uuid: string,
+ *     workflow_id: string,
+ *     payload: N8nPayloadInterface,
+ *     mode: CommunicationMode,
+ *     method: string,
+ *     sent_at: \DateTimeImmutable,
+ *     handler?: N8nResponseHandlerInterface,
+ *     timeout?: int,
+ * }
  */
 final class MockN8nClient implements N8nClientInterface
 {
+    /** @var list<RecordedRequest> */
     private array $sentRequests = [];
+    /** @var list<array<mixed>> */
     private array $responseQueue = [];
     private ?\Throwable $exceptionToThrow = null;
     private string $clientId = 'mock-client';
@@ -142,7 +155,7 @@ final class MockN8nClient implements N8nClientInterface
      * Set the response data to return for the next request(s)
      * Can be called multiple times to queue different responses
      *
-     * @param array $response The response data to return
+     * @param array<mixed> $response The response data to return
      */
     public function willReturn(array $response): self
     {
@@ -154,7 +167,7 @@ final class MockN8nClient implements N8nClientInterface
     /**
      * Set multiple responses to be returned in sequence
      *
-     * @param array $responses Array of response arrays
+     * @param array<array<mixed>> $responses Array of response arrays
      */
     public function willReturnSequence(array $responses): self
     {
@@ -207,7 +220,7 @@ final class MockN8nClient implements N8nClientInterface
      * Assert that a request was sent to the specified workflow
      *
      * @param string $workflowId The workflow ID to check
-     * @param callable|null $callback Optional callback to further inspect the request
+     * @param (callable(RecordedRequest): bool)|null $callback Optional callback to further inspect the request
      * @throws \PHPUnit\Framework\AssertionFailedError
      */
     public function assertSent(string $workflowId, ?callable $callback = null): void
@@ -225,7 +238,7 @@ final class MockN8nClient implements N8nClientInterface
      * Assert that no request was sent to the specified workflow
      *
      * @param string $workflowId The workflow ID to check
-     * @param callable|null $callback Optional callback to further inspect requests
+     * @param (callable(RecordedRequest): bool)|null $callback Optional callback to further inspect requests
      * @throws \PHPUnit\Framework\AssertionFailedError
      */
     public function assertNotSent(string $workflowId, ?callable $callback = null): void
@@ -275,7 +288,7 @@ final class MockN8nClient implements N8nClientInterface
      */
     public function assertSentWithPayload(string $workflowId, array $expectedData): void
     {
-        $this->assertSent($workflowId, static function (array $request) use ($expectedData) {
+        $this->assertSent($workflowId, static function (array $request) use ($expectedData): bool {
             $actualPayload = $request['payload']->toN8nPayload();
 
             foreach ($expectedData as $key => $value) {
@@ -290,6 +303,8 @@ final class MockN8nClient implements N8nClientInterface
 
     /**
      * Get all recorded requests
+     *
+     * @return list<RecordedRequest>
      */
     public function getRequests(): array
     {
@@ -300,6 +315,8 @@ final class MockN8nClient implements N8nClientInterface
      * Get requests sent to a specific workflow
      *
      * @param string $workflowId The workflow ID
+     *
+     * @return array<int, RecordedRequest>
      */
     public function getRequestsFor(string $workflowId): array
     {
@@ -325,11 +342,19 @@ final class MockN8nClient implements N8nClientInterface
 
     // Private helper methods
 
+    /**
+     * @param RecordedRequest $request
+     */
     private function recordRequest(array $request): void
     {
         $this->sentRequests[] = $request;
     }
 
+    /**
+     * @param (callable(RecordedRequest): bool)|null $callback
+     *
+     * @return array<int, RecordedRequest>
+     */
     private function findRequests(string $workflowId, ?callable $callback = null): array
     {
         return array_filter(
@@ -340,7 +365,7 @@ final class MockN8nClient implements N8nClientInterface
                 }
 
                 if ($callback !== null) {
-                    return $callback($request);
+                    return (bool) $callback($request);
                 }
 
                 return true;
@@ -348,13 +373,12 @@ final class MockN8nClient implements N8nClientInterface
         );
     }
 
+    /**
+     * @return array<mixed>
+     */
     private function getNextResponse(): array
     {
-        if (empty($this->responseQueue)) {
-            return ['status' => 'ok', 'message' => 'Mock response'];
-        }
-
-        return array_shift($this->responseQueue);
+        return array_shift($this->responseQueue) ?? ['status' => 'ok', 'message' => 'Mock response'];
     }
 
     private function generateUuid(): string
@@ -364,10 +388,6 @@ final class MockN8nClient implements N8nClientInterface
 
     private function mapResponse(N8nPayloadInterface $payload, array $responseData): ?object
     {
-        if (!method_exists($payload, 'getN8nResponseClass')) {
-            return null;
-        }
-
         $responseClass = $payload->getN8nResponseClass();
         if ($responseClass === null || !class_exists($responseClass)) {
             return null;

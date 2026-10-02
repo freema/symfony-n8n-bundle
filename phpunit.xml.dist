@@ -7,9 +7,11 @@
          stopOnFailure="false"
          displayDetailsOnTestsThatTriggerErrors="true"
          displayDetailsOnTestsThatTriggerWarnings="true"
-         displayDetailsOnTestsThatTriggerDeprecations="true">
+         displayDetailsOnTestsThatTriggerDeprecations="true"
+         failOnDeprecation="true"
+         failOnPhpunitDeprecation="true">
 
-    <source>
+    <source ignoreIndirectDeprecations="true">
         <include>
             <directory suffix=".php">src</directory>
         </include>
@@ -31,6 +33,5 @@
     <php>
         <env name="APP_ENV" value="test"/>
         <env name="APP_DEBUG" value="1"/>
-        <env name="SYMFONY_DEPRECATIONS_HELPER" value="max[direct]=0"/>
     </php>
 </phpunit>

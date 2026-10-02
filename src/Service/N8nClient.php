@@ -87,23 +87,19 @@ final class N8nClient implements N8nClientInterface
 
             // Map response to entity if class is specified
             $mappedResponse = null;
-            if (method_exists($payload, 'getN8nResponseClass')) {
-                $responseClass = $payload->getN8nResponseClass();
-                if ($responseClass !== null && class_exists($responseClass)) {
-                    try {
-                        $mappedResponse = $this->responseMapper->mapToClass($responseData, $responseClass);
-                    } catch (\Exception $e) {
-                        // Log mapping error but continue with raw data
-                    }
+            $responseClass = $payload->getN8nResponseClass();
+            if ($responseClass !== null && class_exists($responseClass)) {
+                try {
+                    $mappedResponse = $this->responseMapper->mapToClass($responseData, $responseClass);
+                } catch (\Exception $e) {
+                    // Log mapping error but continue with raw data
                 }
             }
 
             // Handle response through custom handler if provided
-            if (method_exists($payload, 'getN8nResponseHandler')) {
-                $responseHandler = $payload->getN8nResponseHandler();
-                if ($responseHandler !== null) {
-                    $responseHandler->handleN8nResponse($responseData, $request->uuid);
-                }
+            $responseHandler = $payload->getN8nResponseHandler();
+            if ($responseHandler !== null) {
+                $responseHandler->handleN8nResponse($responseData, $request->uuid);
             }
 
             $this->requestTracker->completeRequest($request->uuid);
