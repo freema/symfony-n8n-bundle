@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Freema\N8nBundle\Tests\Unit\Service;
 
 use Freema\N8nBundle\Service\CircuitBreaker;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \Freema\N8nBundle\Service\CircuitBreaker
- */
+#[CoversClass(CircuitBreaker::class)]
 class CircuitBreakerTest extends TestCase
 {
     private CircuitBreaker $circuitBreaker;

@@ -76,7 +76,10 @@ class ResponseMapper
 
         foreach ($data as $key => $value) {
             if ($this->propertyAccessor->isWritable($object, $key)) {
-                $this->propertyAccessor->setValue($object, $key, $value);
+                // setValue() takes its target by reference; for an object it
+                // writes to the same instance, so $object keeps its type
+                $target = $object;
+                $this->propertyAccessor->setValue($target, $key, $value);
             }
         }
 

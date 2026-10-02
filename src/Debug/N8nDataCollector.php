@@ -58,37 +58,56 @@ class N8nDataCollector extends AbstractDataCollector
 
     public function getRequests(): array
     {
-        return $this->data['requests'] ?? [];
+        return $this->collectedArray('requests');
     }
 
     public function getResponses(): array
     {
-        return $this->data['responses'] ?? [];
+        return $this->collectedArray('responses');
     }
 
     public function getErrors(): array
     {
-        return $this->data['errors'] ?? [];
+        return $this->collectedArray('errors');
     }
 
     public function getTotalRequests(): int
     {
-        return $this->data['total_requests'] ?? 0;
+        return $this->collectedInt('total_requests');
     }
 
     public function getTotalErrors(): int
     {
-        return $this->data['total_errors'] ?? 0;
+        return $this->collectedInt('total_errors');
     }
 
     public function getTotalTime(): float
     {
-        return $this->data['total_time'] ?? 0.0;
+        $value = $this->data['total_time'] ?? 0.0;
+
+        return is_numeric($value) ? (float) $value : 0.0;
     }
 
     public function getName(): string
     {
         return 'n8n';
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    private function collectedArray(string $key): array
+    {
+        $value = $this->data[$key] ?? [];
+
+        return \is_array($value) ? $value : [];
+    }
+
+    private function collectedInt(string $key): int
+    {
+        $value = $this->data[$key] ?? 0;
+
+        return \is_int($value) ? $value : 0;
     }
 
     public function reset(): void

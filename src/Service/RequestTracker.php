@@ -142,8 +142,12 @@ final class RequestTracker
 
         $item = $this->store->getItem(self::KEY_PREFIX.$uuid);
         $record = $item->isHit() ? $item->get() : null;
+        if (!\is_array($record) || !\is_string($record['state'] ?? null)) {
+            return null;
+        }
 
-        return \is_array($record) && \is_string($record['state'] ?? null) ? $record : null;
+        /** @var array<string, mixed> $record written by save() */
+        return $record;
     }
 
     /**

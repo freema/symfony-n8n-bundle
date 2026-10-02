@@ -67,57 +67,60 @@ tasks:
   # Testing
   test:
     desc: 'Run PHPUnit tests (PHP 8.2)'
-    cmd: 'docker exec {{ .PHP82 }} vendor/bin/phpunit --testsuite=Unit'
+    cmd: 'docker exec {{ .PHP82 }} vendor/bin/phpunit'
 
   test:84:
     desc: 'Run PHPUnit tests (PHP 8.4)'
-    cmd: 'docker exec {{ .PHP84 }} vendor/bin/phpunit --testsuite=Unit'
+    cmd: 'docker exec {{ .PHP84 }} vendor/bin/phpunit'
 
   test:coverage:
     desc: 'Run tests with coverage report'
-    cmd: 'docker exec {{ .PHP82 }} vendor/bin/phpunit --testsuite=Unit --coverage-html=var/coverage'
+    cmd: 'docker exec {{ .PHP82 }} vendor/bin/phpunit --coverage-html=var/coverage'
 
   test:health:
     desc: 'Check application health'
     cmd: 'curl -X GET http://localhost:8080/demo/health'
 
-  # Symfony Version Matrix Testing
+  # Symfony Version Matrix Testing (the same versions as CI)
+  # SYMFONY_REQUIRE only takes effect with Symfony Flex, installed globally
+  # in the container on first use.
   test:sf64:
     desc: 'Test with Symfony 6.4 (PHP 8.2)'
-    cmd: |
-      docker exec {{ .PHP82 }} sh -c "
-        composer config extra.symfony.require '6.4.*' &&
-        composer update --no-interaction --no-progress &&
-        vendor/bin/phpunit --testsuite=Unit
-      "
+    cmds:
+      - task: flex
+        vars: { CONTAINER: '{{ .PHP82 }}' }
+      - docker exec -e SYMFONY_REQUIRE='6.4.*' {{ .PHP82 }} sh -c "composer update --no-interaction --no-progress && vendor/bin/phpunit"
 
-  test:sf71:
-    desc: 'Test with Symfony 7.1 (PHP 8.2)'
-    cmd: |
-      docker exec {{ .PHP82 }} sh -c "
-        composer config extra.symfony.require '7.1.*' &&
-        composer update --no-interaction --no-progress &&
-        vendor/bin/phpunit --testsuite=Unit
-      "
+  test:sf74:
+    desc: 'Test with Symfony 7.4 (PHP 8.2)'
+    cmds:
+      - task: flex
+        vars: { CONTAINER: '{{ .PHP82 }}' }
+      - docker exec -e SYMFONY_REQUIRE='7.4.*' {{ .PHP82 }} sh -c "composer update --no-interaction --no-progress && vendor/bin/phpunit"
 
-  test:sf80:
-    desc: 'Test with Symfony 8.0 (PHP 8.4)'
-    cmd: |
-      docker exec {{ .PHP84 }} sh -c "
-        composer config extra.symfony.require '8.0.*' &&
-        composer update --no-interaction --no-progress &&
-        vendor/bin/phpunit --testsuite=Unit
-      "
+  test:sf8:
+    desc: 'Test with Symfony 8 (PHP 8.4)'
+    cmds:
+      - task: flex
+        vars: { CONTAINER: '{{ .PHP84 }}' }
+      - docker exec -e SYMFONY_REQUIRE='8.*' {{ .PHP84 }} sh -c "composer update --no-interaction --no-progress && vendor/bin/phpunit"
 
   test:matrix:
-    desc: 'Run full test matrix (Symfony 6.4, 7.1, 8.0)'
+    desc: 'Run full test matrix (Symfony 6.4, 7.4, 8)'
     cmds:
       - task: test:sf64
-      - task: test:sf71
-      - task: test:sf80
-      - cmd: |
-          docker exec {{ .PHP82 }} composer config extra.symfony.require '^6.4|^7.0|^8.0'
-        silent: true
+      - task: test:sf74
+      - task: test:sf8
+
+  flex:
+    internal: true
+    cmd: |
+      docker exec {{ .CONTAINER }} sh -c "
+        composer global show symfony/flex > /dev/null 2>&1 || {
+          composer global config --no-plugins allow-plugins.symfony/flex true &&
+          composer global require --no-interaction --no-progress symfony/flex
+        }
+      "
 
   # Code Quality
   stan:

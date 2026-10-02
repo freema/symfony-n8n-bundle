@@ -6,11 +6,10 @@ namespace Freema\N8nBundle\Tests\Unit\Service;
 
 use Freema\N8nBundle\Service\ResponseMapper;
 use Freema\N8nBundle\Tests\Fixtures\TestResponse;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @covers \Freema\N8nBundle\Service\ResponseMapper
- */
+#[CoversClass(ResponseMapper::class)]
 class ResponseMapperTest extends TestCase
 {
     private ResponseMapper $mapper;

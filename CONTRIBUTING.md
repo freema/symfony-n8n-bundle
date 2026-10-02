@@ -94,9 +94,6 @@ tests/                 # Unit and integration tests
 # All tests
 task test
 
-# Unit tests only
-task test:unit
-
 # Code quality
 task stan           # PHPStan
 task cs:fix         # PHP-CS-Fixer

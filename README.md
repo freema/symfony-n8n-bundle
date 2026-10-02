@@ -427,8 +427,8 @@ task test:coverage # Run tests with coverage report
 
 # Symfony Version Matrix
 task test:sf64     # Test with Symfony 6.4 (PHP 8.2)
-task test:sf71     # Test with Symfony 7.1 (PHP 8.2)
-task test:sf80     # Test with Symfony 8.0 (PHP 8.4)
+task test:sf74     # Test with Symfony 7.4 (PHP 8.2)
+task test:sf8      # Test with Symfony 8 (PHP 8.4)
 task test:matrix   # Run full test matrix
 
 # Code Quality

@@ -12,15 +12,14 @@ use Freema\N8nBundle\Exception\N8nCommunicationException;
 use Freema\N8nBundle\Exception\N8nTimeoutException;
 use Freema\N8nBundle\Http\N8nHttpClient;
 use Freema\N8nBundle\Tests\Fixtures\TestPayload;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\Exception\TimeoutException;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
-/**
- * @covers \Freema\N8nBundle\Http\N8nHttpClient
- */
+#[CoversClass(N8nHttpClient::class)]
 class N8nHttpClientTest extends TestCase
 {
     public function testSendWebhookReturnsMaterializedResultOnSuccess(): void
