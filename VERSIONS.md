@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-11-06
+
 ### Fixed
 - A signed callback whose `_n8n_bundle.handler_id` or `client_id` is not a string no longer fails with HTTP 500; the value is ignored.
 
